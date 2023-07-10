@@ -40,17 +40,27 @@
     <Compile Include="TimeTrack2_APP\migrations\__init__.py" />
     <Compile Include="TimeTrack2_APP\models.py" />
     <Compile Include="TimeTrack2_APP\tests.py" />
+    <Compile Include="TimeTrack2_APP\urls.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="TimeTrack2_APP\views.py" />
+    <Compile Include="TimeTrack2_APP\views_aux.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="TimeTrack2_APP\__init__.py" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="requirements.txt" />
+    <Content Include="TimeTrack2_APP\static\TimeTrack2_APP\style.css" />
+    <Content Include="TimeTrack2_APP\templates\base.html" />
     <Content Include="TimeTrack2_APP\templates\TimeTrack2_APP\index.html" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="TimeTrack2\" />
     <Folder Include="TimeTrack2_APP\" />
     <Folder Include="TimeTrack2_APP\migrations\" />
+    <Folder Include="TimeTrack2_APP\static\" />
+    <Folder Include="TimeTrack2_APP\static\TimeTrack2_APP\" />
     <Folder Include="TimeTrack2_APP\templates\" />
     <Folder Include="TimeTrack2_APP\templates\TimeTrack2_APP\" />
   </ItemGroup>

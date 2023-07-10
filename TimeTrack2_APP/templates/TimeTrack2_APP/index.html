@@ -1,9 +1,94 @@
-<html>
-<head><title></title></head>
+{% extends 'base.html' %}
+<head>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'TimeTrack2_APP/style.css' %}">
+</head>
 
+{% block mainBodyContent %}
+
+<button onclick="foo()">Start</button>
+<h1 id="outputObject"></h1>
+<script>
+    var currentSection;
+    function foo() {
+        var start = Date.now();
+        setInterval(function () {
+            var delta = Date.now() - start;
+            document.getElementById("outputObject").textContent = Math.floor(delta / 1000);
+        }, 1000);
+    }
+</script>
+{% endblock %}
+
+
+{% block leftNavContent %}
+<div id="sections">
+    <h3>Sections</h3>
+
+    <!--<form method="post" action="{% url 'TimeTrack2_APP:homepage' %}">
+        {% csrf_token %}
+        {{sectionForm}}
+
+        <button type="submit">Add</button>
+    </form>-->
+</div>
+
+
+{{sections|json_script:"sectionsJson"}}
+<script>
+    //get the sections data from JSON
+    const data = JSON.parse(document.getElementById('sectionsJson').textContent);
+    const data2 = JSON.parse(data);
+    let sectionsDiv = document.getElementById("sections");
+    for (i of data2) {
+        //section container, contains the plus and the section
+        let sectionContainer = document.createElement("div");
+        sectionContainer.className = "sectionContainer"
+        sectionsDiv.appendChild(sectionContainer);
+
+        //adding the plus for the collapsing
+        let plus = document.createElement("button");
+        plus.textContent = "[+]";
+        sectionContainer.appendChild(plus);
+
+        //set the content for the section
+        let tmp = document.createElement("span");
+        tmp.textContent = i["fields"]["name"];
+        sectionContainer.appendChild(tmp);
+
+        //set vertical margin for the section container
+        let layer = i["fields"]["layer"];
+        sectionContainer.style.marginLeft = 14 * (layer-1) + "px";;
+        sectionContainer.style.marginBottom = "0px";
+        if (layer == "1") {
+            sectionContainer.style.marginTop = "10px";
+            tmp.className = "collapsible";
+            tmp.addEventListener("click", function () {
+                
+            });
+        }
+        else {
+            sectionContainer.style.marginTop = "5px";
+
+        }    
+    }
+
+
+
+
+</script>
+{% endblock %}
+
+
+<!--{% load socialaccount %}
+<html>
 <body>
 
-{{ content }}
-
+    <h1>My Google OAuth Project </h1>
+    {% if user.is_authenticated %}
+        <p>Welcome, You are logged in as {{ user.username }}</p>
+    {% else %}
+        <a href="{% provider_login_url 'google' %}">Login With Google</a>
+    {% endif %}
 </body>
-</html>
+</html>-->

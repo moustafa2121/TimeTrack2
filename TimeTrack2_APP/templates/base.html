@@ -1,0 +1,60 @@
+<!-- templates/base.html -->
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <link rel="icon" type="image/x-icon" href="/static/TimeTrack2_APP/favicon.ico">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'TimeTrack2_APP/style.css' %}">
+
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8">
+    {% block linksIfAny %} {% endblock %}
+    <title>{% block title %}Place holder{% endblock %}</title>
+</head>
+
+<body>
+    <div id="navBarTop">
+        <h1> Time Tracker</h1>
+        <ul>
+            {% if user.is_authenticated %}
+            {#<li style="float:right"> <a href="{% url 'ERP_App:logout' %}">Log out</a></li>#}
+            <li style="float:right"><h4> Hi, {{ user.first_name }}! </h4></li>
+            {% else %}
+            {#<li style="float:right"><a href="{% url 'ERP_App:login'%}">Login</a></li>#}
+            {% endif %}
+        </ul>
+    </div>    
+
+    <div id="navBarLeft">
+        {% block leftNavContent %}
+        {% endblock %}
+    </div>
+
+    <div id="mainBodyRight">
+        {% block mainBodyContent %}
+        <p></p>
+        {% endblock %}
+    </div>
+    
+    <footer>
+        
+
+    </footer>
+    <br />
+</body>
+</html>
+
+<script>
+    const str = window.location.href
+    if (str.endsWith('/news'))
+        document.getElementById('bannerNews').classList.add('active');
+    else if (str.endsWith('/contact'))
+        document.getElementById('bannerContact').classList.add('active');
+    else if (str.endsWith('/about'))
+        document.getElementById('bannerAbout').classList.add('active');
+    else if (str.endsWith('') && str.split('/')[3].length == 0)
+        document.getElementById('bannerHome').classList.add('active');
+
+</script>

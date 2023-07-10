@@ -1,0 +1,170 @@
+html {
+    background-color: #f1f1f1;
+    height: 100%;
+    margin-left: 50px;
+    margin-right: 50px;
+}
+* {
+    box-sizing: border-box;
+}
+
+#navBarTop, #navBarLeft, #mainBodyRight {
+    /*border: 1px solid blue;*/
+    background-color: white;
+}
+
+/* navBarTop section*/
+#navBarTop {
+    height: 5%;
+    position: sticky;
+    text-align: center;
+}
+
+/* navBarLeft section*/
+#navBarLeft {
+    float: left;
+    width: 10%;
+
+    margin-right:2%;
+    position: sticky;
+}
+#navBarLeft h3 {
+    text-align:center;
+}
+#navBarLeft span{
+    font-size:13px;
+}
+#navBarLeft button {
+    line-height: 5px;
+    width: 5px;
+    text-align: left;
+    border: none;
+    background: none;
+    margin-right: 12px;
+}
+
+/* mainBodyRight section*/
+#mainBodyRight {
+    float: left;
+    width: 88%;
+    height: 75%;
+    padding-left:15px;
+}
+
+.collapsible {
+    background-color: red;
+}
+
+
+
+/*
+#navBarLeft li {
+    border-right: 1px solid #bbb;
+}
+#navBarLeft li a, #navBarLeft li h4 {
+    display: block;
+    color: black;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+li a:hover {
+    background-color: #111;
+}
+.active {
+    background-color: #04AA6D;
+}*/
+
+
+
+/* footer */
+/*footer {
+    border: 5px solid green;
+    padding: 1px;
+    margin: 1px;
+}*/
+
+/* the lister */
+/*.itemsList {
+    display:inline-block;
+    list-style-type: none;
+    width:330px;
+    border: 2px;
+    border-style:double;
+    padding-left:2px;
+    margin-top:2px;
+    height:150px;
+    overflow:auto;
+}
+#itemContainer{
+    margin-bottom:3px;
+    margin-top:5px;
+}
+#itemContainer:hover {
+    background: #dfdfe2;
+    cursor: default;
+}
+#item {
+    margin: 0px;
+    font-size:15px;
+    font-family:sans-serif;
+}
+#itemDate {
+    font-size:10px;
+    text-align:right;
+    padding-right:5px;
+    margin:0px;
+}
+.hide {
+    display: none;
+    width: 160px;
+}
+.show {
+    display: inline-block;
+    color: red;
+    width: 160px;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 8px 0;
+    position: absolute;
+    z-index: 1;
+}*/
+
+/* main lister */
+/*#listContainer {
+    display: inline-grid;
+    grid-template-columns: 600px;
+    grid-template-rows: 100px;
+    border: dotted black 2px;
+}
+
+#mainListerItem {
+    display: grid;
+    grid-template-columns: 60% 20% 20%;
+    grid-template-rows: auto;
+    border: 1px solid black;
+    height: 60px;
+    padding: 10px;
+    margin: 10px;
+}
+#mainListerItemDetails {
+    border: 1px solid blue;
+    text-align: left;
+}
+#mainListerItemAmount {
+    border: 1px solid red;
+    text-align: center;
+    margin-left: 10px;
+    padding: 5px;
+}
+#mainListerItemStatus {
+    display: flex;
+    align-self: flex-start;
+    flex-direction: row;
+    border: 1px solid orange;
+    text-align: center;
+    margin-left: 10px;
+    padding: 5px;
+}*/
