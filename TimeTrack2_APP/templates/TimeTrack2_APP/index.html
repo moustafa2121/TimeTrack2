@@ -1,85 +1,74 @@
 {% extends 'base.html' %}
-<head>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'TimeTrack2_APP/style.css' %}">
-</head>
 
+<!-- the main body -->
 {% block mainBodyContent %}
+{% load static %}
+<script src="{% static 'TimeTrack2_APP/mainBodyContentScript.js' %}" defer></script>
 
-<button onclick="foo()">Start</button>
-<h1 id="outputObject"></h1>
-<script>
-    var currentSection;
-    function foo() {
-        var start = Date.now();
-        setInterval(function () {
-            var delta = Date.now() - start;
-            document.getElementById("outputObject").textContent = Math.floor(delta / 1000);
-        }, 1000);
-    }
-</script>
-{% endblock %}
+<!-- display messages if any -->
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+    <li>{{ message }}</li>
+    {% endfor %}
+</ul>
+<!-- todo: x on the message to close it-->
+{% endif %}
 
+<div id="responseMessage"></div>
 
-{% block leftNavContent %}
-<div id="sections">
-    <h3>Sections</h3>
+<!-- session -->
+<div>
 
-    <!--<form method="post" action="{% url 'TimeTrack2_APP:homepage' %}">
-        {% csrf_token %}
-        {{sectionForm}}
-
-        <button type="submit">Add</button>
-    </form>-->
 </div>
 
+<!--actionable buttons-->
+<div>
+    <h3>Actionables</h3>
+    {% for i in actionablesChoices %}
+        <button class="actionableButton" id="actionable_{{i.name}}" style="background-color:{{i.color}}">{{i.name}}</button>
+    {% endfor %}
+</div>
+<br />
+<br />
 
+
+<h1 id="outputObject">00:00:00</h1>
+
+
+<h3 id="currentlySelectedSession">Empty</h3>
+
+<h4>Log</h4>
+<div id="timerLog">
+
+</div>
+
+{% endblock %}
+
+<!-- left nav panel, mainly sections -->
+{% block leftNavContent %}
+{% load static %}
+<script src="{% static 'TimeTrack2_APP/leftNavContentScript.js' %}" defer></script>
 {{sections|json_script:"sectionsJson"}}
-<script>
-    //get the sections data from JSON
-    const data = JSON.parse(document.getElementById('sectionsJson').textContent);
-    const data2 = JSON.parse(data);
-    let sectionsDiv = document.getElementById("sections");
-    for (i of data2) {
-        //section container, contains the plus and the section
-        let sectionContainer = document.createElement("div");
-        sectionContainer.className = "sectionContainer"
-        sectionsDiv.appendChild(sectionContainer);
 
-        //adding the plus for the collapsing
-        let plus = document.createElement("button");
-        plus.textContent = "[+]";
-        sectionContainer.appendChild(plus);
+<!-- list of sections -->
+<div id="sections">
+    <h3>Sections</h3>
+    <div id="addSectionForm">
+        <p style="height:10px;margin:0px" id="addSectionFormTitle">formTitle</p>
+        <form method="post" action="{% url 'TimeTrack2_APP:homepage' %}">
+            {% csrf_token %}
+            {{sectionForm.as_p}}
 
-        //set the content for the section
-        let tmp = document.createElement("span");
-        tmp.textContent = i["fields"]["name"];
-        sectionContainer.appendChild(tmp);
-
-        //set vertical margin for the section container
-        let layer = i["fields"]["layer"];
-        sectionContainer.style.marginLeft = 14 * (layer-1) + "px";;
-        sectionContainer.style.marginBottom = "0px";
-        if (layer == "1") {
-            sectionContainer.style.marginTop = "10px";
-            tmp.className = "collapsible";
-            tmp.addEventListener("click", function () {
-                
-            });
-        }
-        else {
-            sectionContainer.style.marginTop = "5px";
-
-        }    
-    }
-
-
-
-
-</script>
+            <input type="hidden" style="display:none" id="addSectionFormParent" name="addSectionFormParent" value="unAcceptableValue" />
+            <button type="submit">Add</button>
+        </form>
+    </div>
+</div>
 {% endblock %}
 
 
+<!-- https://django-allauth.readthedocs.io/en/latest/views.html#login-account-login -->
 <!--{% load socialaccount %}
 <html>
 <body>
@@ -92,3 +81,4 @@
     {% endif %}
 </body>
 </html>-->
+
