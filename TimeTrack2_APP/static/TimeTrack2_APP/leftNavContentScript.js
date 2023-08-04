@@ -6,13 +6,17 @@ let sectionsDiv = document.getElementById("sections");
 let firstClickedAddSectionForm = true;
 let addSectionForm = document.getElementById("addSectionForm")
 
-let previouslySelectedSection;
 
-for (i of data2) {
-    //section container, contains the plus and the section
+for (let i of data2) {
+    displaySection(i);
+}
+
+
+function displaySection(i) {
+    //section container, contains the collapseButton and the section
     let sectionContainer = document.createElement("div");
     sectionContainer.className = "sectionContainer"
-    sectionContainer.setAttribute("id", "sectionContainer_"+i["fields"]["sectionedLayer"]);
+    sectionContainer.setAttribute("id", "sectionContainer_" + i["fields"]["sectionedLayer"]);
 
     //section container only for the section itself, not the children
     let sectionContainerInd = document.createElement("div");
@@ -20,10 +24,10 @@ for (i of data2) {
     sectionContainerInd.setAttribute("id", "sectionContainerInd_" + i["fields"]["sectionedLayer"]);
     sectionContainer.appendChild(sectionContainerInd);
 
-    //adding the plus for the collapsing
-    let plus = document.createElement("button");
-    plus.textContent = ">";
-    sectionContainerInd.appendChild(plus);
+    //adding the collapseButton for the collapsing
+    let collapseButton = document.createElement("button");
+    collapseButton.textContent = ">";
+    sectionContainerInd.appendChild(collapseButton);
 
     //set the content for the section
     let content = document.createElement("span");
@@ -37,7 +41,7 @@ for (i of data2) {
 
     //set vertical margin for the section container
     let layer = i["fields"]["layer"];
-    sectionContainer.style.marginLeft = 12 * (layer - 1) + "px";;
+    sectionContainer.style.marginLeft = 12 + "px";;
     sectionContainer.style.marginBottom = "0px";
 
     //append the sectionContainer to the proper parent
@@ -48,67 +52,94 @@ for (i of data2) {
     }
     else {//all other layers
         sectionContainer.style.marginTop = "3px";
-        let parentSectionedLayer = "sectionContainer_" + i["fields"]["sectionedLayer"].slice(0, -2);
+        let fa = i["fields"]["sectionedLayer"].split(".");
+        fa.pop();
+        let parentSectionedLayer = "sectionContainer_" + fa.join(".");
         let parent = document.getElementById(parentSectionedLayer);
         parent.appendChild(sectionContainer);
     }
 
-    //collapsible for the plus
-    plus.addEventListener("click", function () {
-        let tmp = sectionContainer.childNodes;
-        let atLeastOneChild = false;
-        for (j of tmp) {
-            if (j.getAttribute("class") == "sectionContainerInd") {
-                continue;
-            }
-            else if (j.getAttribute("class") == "sectionContainer") {
-                j.style.display = (j.style.display == "none") ? "block" : "none";
-                atLeastOneChild = true;
-            }
-        }
-        if (atLeastOneChild)
-            plus.textContent = (plus.textContent == ">") ? "U" : ">";
-    })
 
-    //form adding button
-    addSectionButton.addEventListener("click", function () {
-        addSectionForm.style.display = "inline-block";
-        addSectionForm.style.left = addSectionButton.getBoundingClientRect().left+35+"px";
-        addSectionForm.style.top = addSectionButton.getBoundingClientRect().top - 10 + "px";
-        firstClickedAddSectionForm = false;
+    if (layer != "4") {
+        //collapsible for the collapseButton
+        collapseButton.addEventListener("click", function () {
+            let children = sectionContainer.childNodes;
+            let atLeastOneChild = false;
+            for (let child of children) {
+                if (child.getAttribute("class") == "sectionContainerInd") {
+                    continue;
+                }
+                else if (child.getAttribute("class") == "sectionContainer") {
+                    child.style.display = (child.style.display == "none") ? "block" : "none";
+                    atLeastOneChild = true;
+                }
+            }
+            if (atLeastOneChild)
+                collapseButton.textContent = (collapseButton.textContent == ">") ? "U" : ">";
+        })
 
-        document.getElementById("addSectionFormTitle").innerHTML = "Add a section to " + "<i>" + content.textContent + "</i>";
-        document.getElementById("addSectionFormParent").setAttribute("value", sectionContainer.id);
-    })
+        //section adding button
+        addSectionButton.addEventListener("click", function () {
+            //set up the form's dispaly
+            addSectionForm.style.display = "inline-block";
+            addSectionForm.style.left = addSectionButton.getBoundingClientRect().left + 35 + "px";
+            addSectionForm.style.top = addSectionButton.getBoundingClientRect().top - 10 + "px";
+            firstClickedAddSectionForm = false;
+
+            document.getElementById("addSectionFormTitle").innerHTML = "Add a section to " + "<i>" + content.textContent + "</i>";
+            document.getElementById("addSectionFormParent").setAttribute("value", sectionContainer.id);
+        })
+    }
+    else {
+        addSectionButton.textContent = "";
+    }
 
     //selecting an individual section as the current section
     content.addEventListener("click", function () {
-        if (previouslySelectedSection != content) {
+        if (currentSessionData && currentSessionData.previouslySelectedSection != content) {
             content.className = "spanSelected";
-            if (previouslySelectedSection)
-                previouslySelectedSection.classList.remove("spanSelected");
-            previouslySelectedSection = content;
+            if (currentSessionData.previouslySelectedSection)
+                currentSessionData.previouslySelectedSection.classList.remove("spanSelected");
+            currentSessionData.previouslySelectedSection = content;
         }
     })
 }
 
-
 //sends a new section to the DB using fetchAPI
-function saveActionable(passedSectionObject) {
+function saveSection(event) {
+    event.preventDefault();
+    const form = event.target;
+    const addSectionFormParentValue = form.elements["addSectionFormParent"].value;
+    const name = form.elements["name"].value;
+    const dict = { "name": name, "addSectionFormParentValue": addSectionFormParentValue }
+
     fetch("/add-section/", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
             "X-CSRFToken": document.querySelector('input[name="csrfmiddlewaretoken"]').value
         },
-        body: JSON.stringify({ "passedSectionObject": passedSectionObject })
+        body: JSON.stringify({ "passedSection": dict })
     })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                // Handle error response here
+                return response.json().then(data => {
+                    throw new Error(data.error);
+                });
+            }
+            return response.json();
+        })
         .then(data => {
-            document.getElementById("responseMessage").textContent = data.message;
+            displaySection(JSON.parse(data.sectionToSend)[0]);
+            addFadingMessage(data.message);
+
+            //reset the form
+            form.elements["name"].value = "";
+            addSectionForm.style.display = "none";
         })
         .catch(error => {
-            console.error("Error:", error);
+            addFadingMessage(error.message); // Display the error message
         });
 }
 

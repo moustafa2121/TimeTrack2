@@ -32,45 +32,124 @@ body {
 /* mainBodyRight section*/
 #mainBodyRight {
     float: left;
-    width: 88%;
+    width: 80%;
     height: 75%;
-    padding-left: 15px;
+    padding: 15px;
+}
+#currentSessionDiv {
+    border: 1px solid black;
+    padding: 10px;
+    width: 50%;
+    margin-top: 10px;
+}
+.sessionFadedButton {
+    opacity: 0.5; /* Faded-out appearance */
+    pointer-events: none; /* Disable click events */
+}
+/* actionable buttons*/
+#actionablesContainerDiv {
+    border: 1px solid black;
+    margin-top: 15px;
+    display:inline-block;
+    padding:10px;
 }
 .actionableButton {
     height: 35px;
-    width: 100px;
-    margin-top: 15px;
+    width: 120px;
     color: white; /* Text color */
     text-shadow: -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black;
 }
-#actionableButtonSelected {
-    border:solid cyan 5px;
+.actionableButtonSelected {
+    border: solid cyan 5px;
+    pointer-events: none; /* Disable click events */
 }
 
-.logEntry {
-    width:40%;
+/* session display*/
+.singleSessionDiv{
+    border:1px solid black;
+    margin-top:15px;
 }
-.logEntry i {
-    float:right;
-}
-#timerLog .barClass {
+.barClass {
     border: 1px solid black;
-    height:24px;
-    width: 80%;
-    margin:0;
-    padding:0;
+    height: 17px;
+    width: 85%;
+    margin: 0;
+    margin-top:15px;
+    padding: 0;
+}
+.subBarClass {
+    height: 15px;
+    margin: 0px;
+    padding: 0;
+}
+.singleActionableDiv {
+    border: 1px solid black;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    width: 85%;
+    display: grid;
+    grid-template-columns: 20px 130px 130px 250px 1000px;
+    align-items: center;
+}
+.singleActionableDiv .singleActionableColor {
+    width: 15px;
+    height: 15px;
+    display: inline-block;
+    margin-left: 5px;
+}
+.singleActionableDiv .singleActionableName, .singleActionableDiv .singleActionableSection, .singleActionableDiv .singleActionableSelect, .singleActionableDiv .singleSectionSelect {
+    margin-left: 10px;
+    margin-right: 10px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+.singleActionableDiv .singleActionableDetails {
+    border: 1px solid black;
+}
+.singleActionableDiv .timeActionableDetail {
+    width: 35%;
+    margin-right: 5px;
+    margin-left: 20px;
+}
+.singleActionableDiv .timeActionableDetail span,  .singleActionableDiv .timeActionableDetail input{
+    width: 18%;
+    text-align: center;
+    margin-left: 10px;
+    margin-right: 10px;
 }
 
-#timerLog .subBarClass {
-    height: 23px;
-    margin:0px;
-    padding:0;
+/* messages fading out*/
+#messagesContainer {
+    display: flex;
+    flex-direction: column; /* Arrange items vertically */
+    justify-content: center;
+    align-items: center;
 }
+#messagesContainer p {
+    position:absolute;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: slategray;
+}
+.fade-out {
+    animation: fadeOut 2s forwards; /* Use a CSS animation to fade out the element over 2 seconds */
+}
+@keyframes fadeOut {
+    to {
+        opacity: 0; /* At the end of the animation, the opacity will be set to 0 */
+    }
+}
+
 
 /* navBarLeft section*/
 #navBarLeft {
     float: left;
-    width: 10%;
+    width: 18%;
     height: 500px;
     margin-right: 2%;
     position: sticky;
@@ -78,8 +157,22 @@ body {
 #navBarLeft h3 {
     text-align:center;
 }
-#navBarLeft .sectionContainer span{
+#navBarLeft .sectionContainer{
+    margin:0px; 
+
+}
+#navBarLeft .sectionContainerInd {
+    display: flex;
+    align-items: center;
+}
+#navBarLeft .sectionContainerInd span{
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    flex-grow: 1;
+
     font-size:13px;
+    text-decoration:underline;    
 }
 #navBarLeft .sectionContainer span:hover{
     background:grey;
@@ -88,7 +181,6 @@ body {
 #navBarLeft .sectionContainer .spanSelected{
     background:grey;
 }
-
 .sectionContainer button {
     line-height: 5px;
     width: 5px;
@@ -98,10 +190,7 @@ body {
     margin-right: 12px;
     cursor: pointer;
 }
-#navBarLeft button:hover {
-    /* todo: fix the background
-    background-color:gray;*/
-}
+
 #navBarLeft #addSectionForm {
     position: relative;
     position: fixed; /*Stay in place */

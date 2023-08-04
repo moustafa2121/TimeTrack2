@@ -5,80 +5,125 @@
 {% load static %}
 <script src="{% static 'TimeTrack2_APP/mainBodyContentScript.js' %}" defer></script>
 
-<!-- display messages if any -->
-{% if messages %}
-<ul class="messages">
-    {% for message in messages %}
-    <li>{{ message }}</li>
-    {% endfor %}
-</ul>
-<!-- todo: x on the message to close it-->
-{% endif %}
-
-<div id="responseMessage"></div>
+<!-- responseMessage -->
+<div id="messagesContainer">
+</div>
 
 <!-- session -->
-<div>
+<div id="currentSessionDiv">
+    <h4 style="float:left">Current Session</h4>
+    <a style="margin-left:70px" id="totalSessionTimeOutput"></a>
+    <button style="float:right" id="buttonEndSession" class="sessionFadedButton"> End Session</button>
+    <button style="float:right" id="buttonStartingSession"> Start New Session</button>
 
 </div>
 
 <!--actionable buttons-->
-<div>
-    <h3>Actionables</h3>
+<div id="actionableButtonsDiv">
+    <br />
+
+    <h4>Select Actionables</h4><br />
     {% for i in actionablesChoices %}
-        <button class="actionableButton" id="actionable_{{i.name}}" style="background-color:{{i.color}}">{{i.name}}</button>
+    <button class="actionableButton" id="actionable_{{i.name}}" style="background-color:{{i.color}}">{{i.name}}</button>
     {% endfor %}
 </div>
 <br />
 <br />
 
-
-<h1 id="outputObject">00:00:00</h1>
-
-
-<h3 id="currentlySelectedSession">Empty</h3>
-
-<h4>Log</h4>
-<div id="timerLog">
-
-</div>
-
-{% endblock %}
-
-<!-- left nav panel, mainly sections -->
-{% block leftNavContent %}
-{% load static %}
-<script src="{% static 'TimeTrack2_APP/leftNavContentScript.js' %}" defer></script>
-{{sections|json_script:"sectionsJson"}}
-
-<!-- list of sections -->
-<div id="sections">
-    <h3>Sections</h3>
-    <div id="addSectionForm">
-        <p style="height:10px;margin:0px" id="addSectionFormTitle">formTitle</p>
-        <form method="post" action="{% url 'TimeTrack2_APP:homepage' %}">
-            {% csrf_token %}
-            {{sectionForm.as_p}}
-
-            <input type="hidden" style="display:none" id="addSectionFormParent" name="addSectionFormParent" value="unAcceptableValue" />
-            <button type="submit">Add</button>
-        </form>
+<!-- current session -->
+<div class="singleSessionDiv">
+    <div id="currentActionableDiv">
+        <h4 style="margin-left:5px; margin-bottom:10px">Current Actionable</h4>
+    </div>
+    <div class="barClass"></div>
+    <div class="singleSessionActionablesContainer">
     </div>
 </div>
-{% endblock %}
 
-
-<!-- https://django-allauth.readthedocs.io/en/latest/views.html#login-account-login -->
-<!--{% load socialaccount %}
-<html>
-<body>
-
-    <h1>My Google OAuth Project </h1>
-    {% if user.is_authenticated %}
-        <p>Welcome, You are logged in as {{ user.username }}</p>
+{% for i, j in allSessions %}
+    {% if not i.archived %}
+    <!--<div class="singleSessionDiv">
+        <div id="currentActionableDiv">
+            <h4 style="margin-left:5px; margin-bottom:10px">Current Actionable</h4>
+        </div>
+        <div class="barClass"></div>
+        <div class="singleSessionActionablesContainer">
+            {% for t in j%}
+            <div class="singleActionableDiv">
+                <div class="singleActionableColor" style:"background-color:{{t.color}}"></div>
+                <span class="singleActionableName" title="{{t.name}}">{{t.name}}</span>
+                <span class="singleActionableSection" title={{t.currentSection}}>{{t.currentSection}}</span>
+                <span class="singleActionableDetails">{{t.detail}}</span>
+                <span class="timeActionableDetail">
+                    <span data-raw-value="{{t.startFrom}}"></span>
+                    <span>  --  </span>
+                    <span data-raw-value="{{t.endTo}}"></span>
+                    <span>Total: </span>
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>-->
     {% else %}
-        <a href="{% provider_login_url 'google' %}">Login With Google</a>
+    <div class="singleSessionDiv">
+        <span data-raw-startFrom="{{i.startFrom}}" data-raw-endTo="{{i.endTo}}">Session: {{i}}</span>
+        <div class="barClass"></div>
+        <div class="singleSessionActionablesContainer">
+            {% for t in j%}
+            <div class="singleActionableDiv">
+                <div class="singleActionableColor" style:"background-color:{{t.color}}"></div>
+                <span class="singleActionableName" title="{{t.name}}">{{t.name}}</span>
+                <span class="singleActionableSection" title={{t.currentSection}}>{{t.currentSection}}</span>
+                <span class="singleActionableDetails">{{t.detail}}</span>
+                <span class="timeActionableDetail">
+                    <span data-raw-value="{{t.startFrom}}"></span>
+                    <span>  -->  </span>
+                    <span data-raw-value="{{t.endTo}}"></span>
+                    <span>Total: </span>
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
     {% endif %}
-</body>
-</html>-->
+    {% endfor %}
 
+    {% endblock %}
+
+    <!-- left nav panel, mainly sections -->
+    {% block leftNavContent %}
+    {% load static %}
+    <script src="{% static 'TimeTrack2_APP/leftNavContentScript.js' %}" defer></script>
+    {{sections|json_script:"sectionsJson"}}
+
+    <!-- list of sections -->
+    <div id="sections">
+        <h3>Sections</h3>
+        <div id="addSectionForm">
+            <p style="height:10px;margin:0px" id="addSectionFormTitle">formTitle</p>
+            <form method="post" action="/" onsubmit="return saveSection(event)">
+                {% csrf_token %}
+                {{sectionForm.as_p}}
+
+                <input type="hidden" style="display:none" id="addSectionFormParent" name="addSectionFormParent" value="unAcceptableValue" />
+                <button type="submit">Add</button>
+            </form>
+        </div>
+    </div>
+    <button id="totalButtonReset">Reset</button>
+    {% endblock %}
+
+
+    <!-- https://django-allauth.readthedocs.io/en/latest/views.html#login-account-login -->
+    <!--{% load socialaccount %}
+    <html>
+    <body>
+
+        <h1>My Google OAuth Project </h1>
+        {% if user.is_authenticated %}
+            <p>Welcome, You are logged in as {{ user.username }}</p>
+        {% else %}
+            <a href="{% provider_login_url 'google' %}">Login With Google</a>
+        {% endif %}
+    </body>
+    </html>-->

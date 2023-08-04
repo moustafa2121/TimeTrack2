@@ -1,139 +1,416 @@
-const Status = { NotReady: "NotReady", Stop: "Stop", Running: "Running"}
-
-const secondsInHour = 86400;
-
 //timer stuff
-let currentStatus = Status.NotReady;
 let setIntervalRef;
 let delta;
 
-//timer output
-let outputObject = document.getElementById("outputObject");
+let currentActionableOutput;
 
-//the log for the timer
-let timerLog = document.getElementById("timerLog");
-let barRef = document.createElement("div");
-barRef.className = "barClass";
-timerLog.appendChild(barRef);
-let currentLogObject;
-
-//listner for the buttons
+//listener for the buttons
 let actionableButtons = document.getElementsByClassName("actionableButton");
-let previouslySelectedActionableButton;
+//todo: modifiable default actionable in the settings
+let defaultActionable = document.getElementById("actionable_Working");
+
+//handling sessions
+const totalSessionTimeOutput = document.getElementById("totalSessionTimeOutput");
+totalSessionTimeOutput.textContent = formatTime(0);
+const buttonStartingSession = document.getElementById("buttonStartingSession");
+
+buttonStartingSession.addEventListener("click", (event) => {
+    if (!currentSessionData.previouslySelectedSection) {//select a section
+        alert("You need to select the current Section");
+        return;
+    }
+    currentSessionData.activeSession = true;
+    defaultActionable.click()
+    switchFadedButtons();
+});
+const buttonEndingSession = document.getElementById("buttonEndSession");
+buttonEndingSession.addEventListener("click", (event) => {
+    if (confirm("Are you sure you want to end this session? Once ended you can no longer edit the actionables of that session.")){
+        endActionable(document.querySelector(".actionableButtonSelected"));
+
+        currentSessionData.previouslySelectedSection.classList.remove("spanSelected");
+        currentSessionData.activeSession = false;
+        updateSession();
+        currentSessionData = getNewCurrentSessionData()
+        switchFadedButtons();
+
+        totalSessionTimeOutput.textContent = formatTime(0);
+    }
+});
+
+//when session is active the buttonStartingSession is faded and the buttonEndingSession
+//is normal. when inactive session, it is opposive
+function switchFadedButtons() {
+    if (currentSessionData.activeSession) {
+        buttonStartingSession.classList.add("sessionFadedButton");
+        buttonEndingSession.classList.remove("sessionFadedButton");
+    }
+    else {
+        buttonEndingSession.classList.add("sessionFadedButton");
+        buttonStartingSession.classList.remove("sessionFadedButton");
+    }
+}
+
+//handles starting and ending sessions
+function updateSession() {
+    if (!currentSessionData.activeSession) {//ending the session
+        currentSessionData.endTo = Date.now();
+    }
+    fetch("/update-session/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": document.querySelector('input[name="csrfmiddlewaretoken"]').value
+        },
+        body: JSON.stringify({ "passedSession": currentSessionData })
+    })
+        .then(response => response.json())
+        .then(data => {
+            addFadingMessage(data.message);            
+        })
+        .catch(error => {
+            addFadingMessage(error);
+        });
+}
+
+//display the actionables
+//assign the event listners
 for (i of actionableButtons) {
     i.addEventListener("click", function () {
-        if (!previouslySelectedSection) {
-            alert("You need to select the current Section");
+        if (!currentSessionData.activeSession) {//select a session
+            alert("You need to start a session");
             return;
         }
-        if (previouslySelectedActionableButton != this) {//if a different button is clicked
-            this.id = "actionableButtonSelected";
-            if (previouslySelectedActionableButton)//for a first call??
-                previouslySelectedActionableButton.id = "";
-            previouslySelectedActionableButton = this;
-
-            //start the timer
-            startWrapper();
+        
+        //if the session is active and there is a selected actionable, end it
+        const previouslySelectedActionableButton = document.querySelector(".actionableButtonSelected");
+        if (previouslySelectedActionableButton) {
+            endActionable(previouslySelectedActionableButton);
         }
+
+        //start the timer 
+        this.classList.add("actionableButtonSelected");
+        startInterval(this);
     })
 }
 
-function startWrapper() {
-    if (currentStatus == Status.NotReady) {
-        if (!previouslySelectedSection) {//this shouldn't be reached anyways
-            alert("You need to select the current Section, this shouldn't be reached anyways");
-            return;
-        }
-        else {
-            currentStatus = Status.Stop;
-        }
-    }
-    if (currentStatus == Status.Stop) {//happens when just starting a session
-        start(Date.now());
-    }
-    else if (currentStatus == Status.Running){//happens when switching actionables
-        currentLogObject.to = Date.now();
-        saveActionable(currentLogObject);
-        outputBar(currentLogObject);
-        clearInterval(setIntervalRef);
-        outputObject.textContent = formatTime(0);
+function endActionable(previouslySelectedActionableButton) {
+    previouslySelectedActionableButton.classList.remove("actionableButtonSelected");
+    currentSessionData.currentSessionActionables[currentActionable.startFrom] = currentActionable;
 
-        //start timer again
-        start(Date.now());
-    }
+    //update the current log/actionable
+    currentActionable.endTo = Date.now();
+    currentActionable.detail = document.querySelector("#currentActionableDiv .singleActionableDetails").value;
+    currentActionable.currentSession = currentSessionData.startFrom;
+    //send it back to the server using fetchAPI
+    addActionable();
+    currentSessionData.totalTimeHolder += (currentActionable.endTo - currentActionable.startFrom);
+
+    //draw the actionable
+    displayActionable(currentActionable, document.querySelector(".singleSessionActionablesContainer"), true, id=currentActionable.startFrom);
+    clearInterval(setIntervalRef);
+    currentActionableOutput.textContent = formatTime(0);
+    currentActionable = getNewCurrentActionable();
 }
 
-function start(startValue) {
+function startInterval(passedActionable) {
+    if (currentSessionData.startFrom == 0) {//happens when switching to new session
+        currentSessionData.startFrom = Date.now();
+        updateSession();//save the new session
+    }
+    //happens when switching actionables as opposed to reloading the page
+    if (passedActionable) {
+        currentActionable.startFrom = Date.now();
+        currentActionable.actionableName = passedActionable.textContent;
+        currentActionable.actionableColor = passedActionable.style.backgroundColor;
+        currentActionable.currentSection = getCurrentSectionedLayerID();
+    }
+    else {
+        document.querySelector("#actionable_" + escapeSpaceWithBackslashes(currentActionable.actionableName)).classList.add("actionableButtonSelected");
+    }
+
+    displayCurrentActionable(currentActionable, document.getElementById("currentActionableDiv"));
+
     setIntervalRef = setInterval(function theIntervalFunction() {
-        delta = Date.now() - startValue;
-        outputObject.textContent = formatTime(Math.floor(delta / 1000));
+        delta = Date.now() - currentActionable.startFrom;
+        currentActionableOutput.textContent = formatTime(Math.floor(delta / 1000));
+        totalSessionTimeOutput.textContent = formatTime(Math.floor((delta + currentSessionData.totalTimeHolder) / 1000));
     }, 1000);
-    currentStatus = Status.Running;
-    currentLogObject = {
-        actionable: previouslySelectedActionableButton.textContent,
-        color: previouslySelectedActionableButton.style.backgroundColor,
-        from: Date.now(),
-    };
 }
 
-//returns a new actionable to the DB using fetchAPI
-function saveActionable(passedLogObject) {
+//sends a new actionable to the DB using fetchAPI
+function addActionable() {
     fetch("/add-actionable/", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
             "X-CSRFToken": document.querySelector('input[name="csrfmiddlewaretoken"]').value
         },
-        body: JSON.stringify({ "passedLogObject": passedLogObject })
+        body: JSON.stringify({ "passedLogObject": currentActionable })
     })
         .then(response => response.json())
         .then(data => {
-            document.getElementById("responseMessage").textContent = data.message;
+            addFadingMessage(data.message);
         })
         .catch(error => {
-            console.error("Error:", error);
+            addFadingMessage(error);
         });
 }
 
-//draws the subbar of a single actionable
-function outputBar(obj) {
+function displayCurrentActionable(passedActionable, parentObject) {
+    let t1, t2, t3;
+    if (parentObject.querySelector(".singleActionableDiv"))
+        parentObject.querySelector(".singleActionableDiv").remove()
+
+    //one actionable
+    let singleActionableDiv = document.createElement("div");
+    singleActionableDiv.className = "singleActionableDiv";
+    parentObject.appendChild(singleActionableDiv);
+
+    displayActionable_firstPart(passedActionable, singleActionableDiv, false);
+
+    currentActionableOutput = document.createElement("span");
+    currentActionableOutput.id = "currentActionableOutput";
+    currentActionableOutput.textContent = formatTime(0);
+    currentActionableOutput.style.marginLeft = "150px";
+    singleActionableDiv.appendChild(currentActionableOutput);
+}
+
+function displayActionable_firstPart(passedActionable, parentObject, actionablesModify=true) {
+
+    //color square
+    let actionableColor = document.createElement("div");
+    actionableColor.style.backgroundColor = passedActionable.actionableColor;
+    actionableColor.className = "singleActionableColor";
+    parentObject.appendChild(actionableColor);
+
+    if (actionablesModify) {//a selectable (for modifiable actionables)
+        let actionablesSelect = document.createElement("select");
+        for (const opt of getListOfActionables()) {
+            const newOpt = document.createElement("option");
+            newOpt.textContent = opt;
+            actionablesSelect.appendChild(newOpt);
+            if (newOpt.textContent == passedActionable.actionableName) 
+                newOpt.selected = true;
+        }
+        actionablesSelect.className = "singleActionableSelect";
+        parentObject.appendChild(actionablesSelect);
+
+        //section
+        let sectionSelect = document.createElement("select");
+        for (const sec of getListOfSections()) {
+            const newSec = document.createElement("option");
+            newSec.textContent = sec;
+            sectionSelect.appendChild(newSec);
+            if (newSec.textContent == sectionedLayerIDToSectionName(passedActionable.currentSection))
+                newSec.selected = true;
+        }
+        sectionSelect.className = "singleSectionSelect";
+        parentObject.appendChild(sectionSelect);
+    }
+    else {//name&section (for the current actionable)
+        let actionableName = document.createElement("span");
+        actionableName.className = "singleActionableName";
+        actionableName.textContent = passedActionable.actionableName;
+        actionableName.title = passedActionable.actionableName;
+        parentObject.appendChild(actionableName);
+
+        //section
+        let sectionName = document.createElement("span");
+        sectionName.textContent = sectionedLayerIDToSectionName(passedActionable.currentSection);
+        sectionName.title = sectionedLayerIDToSectionName(passedActionable.currentSection);
+        sectionName.className = "singleActionableSection";
+        parentObject.appendChild(sectionName);
+    }
+        
+    //details
+    let details = document.createElement("input");
+    details.className = "singleActionableDetails";
+    details.type = "text";
+    details.value = passedActionable.detail;
+    details.placeholder = "Actionable Details";
+    details.maxLength = 250;
+    parentObject.appendChild(details);
+}
+
+function displayBar(barRef, obj, divider=secondsInDay) {
+    //bar stuff
     subBar = document.createElement("span");
     subBar.style.display = "inline-block";
-    subBar.style.backgroundColor = obj.color;
-    let currentSeconds = (obj.to - obj.from) / 1000;
-    currentSeconds += 3600;
-    let width = ((currentSeconds/secondsInHour) * 100)+"%";
+    subBar.style.backgroundColor = obj.actionableColor;
+    let currentSeconds = Math.ceil((obj.endTo - obj.startFrom) / 1000);
+    currentSeconds *= 100;
+    let width = (currentSeconds / divider) + "%";
     subBar.style.width = width;
-
     subBar.className = "subBarClass"
     barRef.appendChild(subBar);
 }
 
+//draws the subbar of a single actionable
+function displayActionable(obj, parentObject, actionablesModify=true, id=null) {
+    let barRef = parentObject.parentNode.querySelector(".barClass");
+    displayBar(barRef, obj);
+    
+    //one actionable
+    let singleActionableDiv = document.createElement("div");
+    singleActionableDiv.className = "singleActionableDiv";
+    if (parentObject.firstChild)
+        parentObject.insertBefore(singleActionableDiv, parentObject.firstChild);
+    else
+        parentObject.appendChild(singleActionableDiv)
 
-//takes epoch
-//returns a string object of the date and time
-function epochToSpecificTimezone(timeEpoch, offset=0) {
-    var d = new Date(timeEpoch);
-    var utc = d.getTime() + (d.getTimezoneOffset() * 60000);  //This converts to UTC 00:00
-    var nd = new Date(utc + (3600000 * offset));
-    return nd.toLocaleString();
+    if (id)
+        singleActionableDiv.id = id;
+    
+    //display the first part
+    displayActionable_firstPart(obj, singleActionableDiv, actionablesModify=actionablesModify);
+        
+    //time span
+    let timeSpan = document.createElement("span")
+    timeSpan.className = "timeActionableDetail";
+    singleActionableDiv.appendChild(timeSpan);
+
+    let timeSpanFrom = document.createElement("input");
+    timeSpanFrom.value = secondsToTime(obj.startFrom);
+    timeSpanFrom.dataset.rawValue = obj.startFrom;
+    timeSpanFrom.pattern = "^(?:[01]\\d|2[0-3]):[0-5]\\d$";
+    timeSpanFrom.type = "text";
+    timeSpanFrom.oninvalid = function () { this.setCustomValidity("Input must be of hh:mm format");};
+    timeSpanFrom.onchange = function () { this.setCustomValidity(""); };
+    timeSpan.appendChild(timeSpanFrom);
+
+    let timeSpanTo = document.createElement("input");
+    timeSpanTo.value = secondsToTime(obj.endTo);
+    timeSpanTo.dataset.rawValue = obj.endTo;
+    timeSpanTo.pattern = "^(?:[01]\\d|2[0-3]):[0-5]\\d$";
+    timeSpanTo.type = "text";
+    timeSpanTo.oninvalid = function () { this.setCustomValidity("Input must be of hh:mm format"); };
+    timeSpanTo.onchange = function () { this.setCustomValidity(""); };
+
+    let d = document.createTextNode("  -->  ");
+    timeSpan.appendChild(d);
+    timeSpan.appendChild(timeSpanTo);
+
+    let totalTime = document.createElement("span");
+    totalTime.textContent = " Total: " + formatTime(Math.floor((obj.endTo - obj.startFrom) / 1000));
+    timeSpan.appendChild(totalTime);
+
+    let actionableDeleteButton = document.createElement("button");
+    actionableDeleteButton.textContent = "X";
+    timeSpan.appendChild(actionableDeleteButton);
+
+    //make sure only the most recent actionable is can be edited, actionable details can still be edited
+    if (parentObject.querySelectorAll(".singleActionableDiv")[1]) {
+        let currentSecondChild = parentObject.querySelectorAll(".singleActionableDiv")[1];
+        //currentFirstChild.children[1].readOnly = true;
+        let t = Array.from(currentSecondChild.querySelectorAll(".timeActionableDetail input"));
+        t.map(function (currentObj) {
+            currentObj.readOnly = true;
+            currentObj.style.cursor = "default";
+        });
+        currentSecondChild.querySelector("button").classList.add("sessionFadedButton");
+    }
+
+    //edit the actionable, section, details, from and to.
+    let actionableSelect = parentObject.querySelector(".singleActionableSelect");
+    actionableSelect.addEventListener("change", updateActionable, false);
+    actionableSelect.name = "name";
+
+    let sectionSelect = parentObject.querySelector(".singleSectionSelect");
+    sectionSelect.addEventListener("change", updateActionable, false);
+    sectionSelect.name = "currentSection";
+
+    let details = parentObject.querySelector(".singleActionableDetails");
+    details.addEventListener("change", updateActionable, false);
+    details.name = "detail";
+    details.oldValue = details.value;
+
+    timeSpanFrom.oldValue = timeSpanFrom.value;
+    timeSpanFrom.addEventListener("change", updateActionable, false);
+    timeSpanFrom.name = "startFrom";
+
+    timeSpanTo.oldValue = timeSpanTo.value;
+    timeSpanTo.addEventListener("change", updateActionable, false);
+    timeSpanTo.name = "endTo";
+        
+    actionableSelect.confirmer = confirmerFunction.bind(actionableSelect);
+    sectionSelect.confirmer = confirmerFunction.bind(sectionSelect);
+    details.confirmer = confirmerFunction.bind(details);
+    timeSpanFrom.confirmer = confirmerFunction.bind(timeSpanFrom);
+    timeSpanTo.confirmer = confirmerFunction.bind(timeSpanTo);
+
+    actionableSelect.updater = updaterFunction.bind(actionableSelect, "actionableName");
+    sectionSelect.updater = updaterFunction.bind(sectionSelect, "currentSection");
+    details.updater = updaterFunction.bind(details, "detail");
+    timeSpanFrom.updater = updaterFunction.bind(timeSpanFrom, "startFrom");
+    timeSpanTo.updater = updaterFunction.bind(timeSpanTo, "endTo");
 }
 
-//takes seconds
-//returns hh:mm
-function secondsToTime(epoch) {
-    t = new Date(epoch);
-    return ("0" + t.getHours()).slice(-2) + ":" + ("0" + t.getMinutes()).slice(-2);
+function updateActionable(event) {
+    let currentTarget = event.currentTarget;
+    //first: input checks
+    if (currentTarget.readOnly){//if it is not editable, return
+        return;
+    }
+    const newValue = currentTarget.value.trim();
+
+    //check validity
+    currentTarget.reportValidity();
+    if (!currentTarget.checkValidity()) {//if invalid
+        currentTarget.value = currentTarget.oldValue;
+        return;
+    }
+    else  {//valid
+        currentTarget.oldValue = newValue;
+    }
+
+    //second: check if the range is proper
+    //this is only for startFrom
+    const nextSingleActionableDetail = currentTarget.parentNode.parentNode.nextElementSibling;
+    if (nextSingleActionableDetail) {//check if there are siblings
+        const endToValue = nextSingleActionableDetail.querySelector('[name="endTo"]').dataset.rawValue;
+    }
+    else {//no siblings
+        currentTarget.confirmer();
+    }
+
+    //change the color of the square if the actionable name changed
+    if (currentTarget.name == "name") {
+        currentTarget.previousSibling.style.backgroundColor = getActionableColor(newValue);
+    }
+
+    //:go to the DB
+    let constObjSend = {};
+    constObjSend[currentTarget.name] = newValue;
+    currentTarget.oldValue = newValue;
+
+    //update the values in the current session
+    currentTarget.updater()
+
+    return;
+
+    fetch("/update-actionable/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": document.querySelector('input[name="csrfmiddlewaretoken"]').value
+        },
+        body: JSON.stringify(constObjSend)
+    })
+        .then(response => response.json())
+        .then(data => {
+            addFadingMessage(data.message);
+        })
+        .catch(error => {
+            addFadingMessage(error);
+        });
 }
 
-//takes seconds
-//returns hh:dd:mm string format
-function formatTime(seconds) {
-    var hours = Math.floor(seconds / 3600);
-    var minutes = Math.floor((seconds % 3600) / 60);
-    var remainingSeconds = seconds % 60;
-    var formattedHours = hours.toString().padStart(2, '0');
-    var formattedMinutes = minutes.toString().padStart(2, '0');
-    var formattedSeconds = remainingSeconds.toString().padStart(2, '0');
-    return formattedHours + ':' + formattedMinutes + ':' + formattedSeconds;
+confirmerFunction = function () {
+    console.log("oh yes indeed m8 "+ this.value);
+}
+
+updaterFunction = function (field) {
+    const currentTargetParent = this.closest(".singleActionableDiv");
+    currentSessionData.currentSessionActionables[currentTargetParent.id][field] = this.value;
 }

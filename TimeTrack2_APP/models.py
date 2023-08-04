@@ -1,4 +1,4 @@
-from argparse import Action
+from datetime import datetime
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.core.exceptions import ValidationError
@@ -8,9 +8,12 @@ from django.core.exceptions import ValidationError
 
 #e.g. a day
 class SessionTime(models.Model):
-    startFrom = models.IntegerField()
-    endTo = models.IntegerField()
+    startFrom = models.IntegerField(primary_key=True)
+    endTo = models.IntegerField(null=True, blank=True)
+    archived = models.BooleanField(default=True)
 
+    def __str__(self):
+        return datetime.fromtimestamp(self.startFrom/1000).date().__str__()
 
 #time intervals
 #e.g. Work > Project1 > frontend > button1
@@ -44,7 +47,7 @@ class Section(models.Model):
             self.sectionedLayer = self.parentSection.sectionedLayer + "." +str(Section.objects.filter(parentSection=self.parentSection).count()+1)
 
         #makes sure same layer sections are name-unique
-        if Section.objects.filter(layer=self.layer).filter(name=self.name).exists():
+        if Section.objects.filter(layer=self.layer).filter(name__iexact=self.name).exists():
             raise ValidationError("A section with the same name on layer '%s' already exists" % self.layer)
        
             
@@ -56,14 +59,7 @@ class Section(models.Model):
     def __str__(self):
         return str(self.sectionedLayer) + "_" + self.name
 
-
-#currently active section
-class ActiveSections (models.model):
-    section = models.ForeignKey(Section, on_delete=models.PROTECT)
-    startFrom = models.IntegerField()
-    endTo = models.IntegerField(primary_key=True)
-
-
+    
 #todo: set as default values
 #ActionableChoices = [
 #    ("WK", "Working"),
@@ -89,7 +85,7 @@ ActionableChoicesColors = [
 class ActionableChoices(models.Model):
     name = models.CharField(max_length=15)
     color = models.CharField(max_length=15, choices=ActionableChoicesColors, null=False, blank=True)
-
+    
     archivedStatus = models.BooleanField(default=False)
 
     #todo: colors and names are unique to non-archive actionables
@@ -99,13 +95,19 @@ class ActionableChoices(models.Model):
 
     def __str__(self):
         return self.name
-
-
+    
 class Actionable(models.Model):
+    currentSection = models.ForeignKey(Section, on_delete=models.PROTECT, null=True)
+    currentSession = models.ForeignKey(SessionTime, on_delete=models.CASCADE, null=True)
+
     name = models.ForeignKey(ActionableChoices, on_delete=models.PROTECT)
     startFrom = models.IntegerField()
-    endTo = models.IntegerField(primary_key=True)
+    endTo = models.IntegerField()
 
+    detail = models.CharField(max_length=250, null=True)
+
+    def __str__(self):
+        return self.currentSession.__str__() +">"+self.name.name+">"+datetime.fromtimestamp(self.startFrom/1000).time().__str__()[:8]
 
         
 #e.g. tasks to be checked when done
