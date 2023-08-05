@@ -181,7 +181,7 @@ body {
 #navBarLeft .sectionContainer .spanSelected{
     background:grey;
 }
-.sectionContainer button {
+.addSectionButton, .collapseButton {
     line-height: 5px;
     width: 5px;
     text-align: left;

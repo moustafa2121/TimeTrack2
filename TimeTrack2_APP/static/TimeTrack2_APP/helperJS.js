@@ -1,9 +1,10 @@
 //const secondsInDay = 86400;
 const secondsInDay = 3600;
 
+//holds the current actionables and the current session data in local stroage
+//as persistant data to be used when refreshing/reloading the page
 let currentSessionData = getNewCurrentSessionData();
 let currentActionable = getNewCurrentActionable();
-
 function getNewCurrentSessionData() {
     return {
         previouslySelectedSection: null,
@@ -26,32 +27,36 @@ function getNewCurrentActionable() {
 }
 
 //handles the closing/refresh of the webpage by storing persistant data in local storage
+//on closing
 window.addEventListener("unload", () => {
-    if (currentSessionData.previouslySelectedSection) {
+    if (currentSessionData.activeSession) {//if there is an active session
         localStorage.setItem("previouslySelectedSectionID", getSectionIdThroughParent(currentSessionData.previouslySelectedSection));
+        currentActionable.detail = document.querySelector("#currentActionableDiv .singleActionableDetails").value;
+        localStorage.setItem("currentSessionData", JSON.stringify(currentSessionData));
+        localStorage.setItem("currentActionable", JSON.stringify(currentActionable));
     }
-    currentActionable.detail = document.querySelector("#currentActionableDiv .singleActionableDetails").value;
-    localStorage.setItem("currentSessionData", JSON.stringify(currentSessionData));
-    localStorage.setItem("currentActionable", JSON.stringify(currentActionable));
 }, false);
 
+//on opening
 window.addEventListener("load", () => {
     currentSessionData = JSON.parse(localStorage.getItem("currentSessionData"));
-    let t = localStorage.getItem("previouslySelectedSectionID");
-    if (t) {
-        let span = document.querySelector("#" + escapePeriodWithBackslashes(t) + " span");
-        currentSessionData.previouslySelectedSection = span;
+    if (currentSessionData) {//if there was an active session
+        //set the selected section
+        const previouslySelectedSectionID = localStorage.getItem("previouslySelectedSectionID");
+        currentSessionData.previouslySelectedSection = document.querySelector("#" + escapePeriodWithBackslashes(previouslySelectedSectionID) + " span");
         currentSessionData.previouslySelectedSection.classList.add("spanSelected");
+
+        //start the actionable and session timer if there is an actionable that has started previously
+        currentActionable = JSON.parse(localStorage.getItem("currentActionable"));
+        if (currentActionable && currentActionable.startFrom != 0) {
+            startInterval(null);
+            switchFadedButtons();
+        }
+        else
+            currentActionable = getNewCurrentActionable();
     }
-    else {
+    else {//else just start a new session data object and new actionable
         currentSessionData = getNewCurrentSessionData();
-    }
-    currentActionable = JSON.parse(localStorage.getItem("currentActionable"));
-    if (currentActionable && currentActionable.startFrom != 0) {
-        startInterval(null);
-        switchFadedButtons();
-    }
-    else {
         currentActionable = getNewCurrentActionable();
     }
 
@@ -60,7 +65,7 @@ window.addEventListener("load", () => {
     localStorage.removeItem("currentSessionData");
     localStorage.removeItem("currentActionable");
 
-    //fix the all sessions display
+    //fix the previous sessions display that were retrieved from the DB
     allSessions = document.querySelectorAll(".singleSessionDiv"); 
     let currentActionableCheck = false;
     for (i of allSessions) {
@@ -118,7 +123,7 @@ window.addEventListener("load", () => {
     }
 }, false);
 
-
+//for testing
 document.getElementById("totalButtonReset").addEventListener("click", (event) => {
     localStorage.removeItem("previouslySelectedSectionID");
     localStorage.removeItem("currentSessionData");

@@ -56,13 +56,18 @@ def addSection(request):
     if request.method == "POST":
         sectionJson = json.loads(request.body).get("passedSection")
         try:
-            parentSectionedLayer = sectionJson["addSectionFormParentValue"].split("_")[-1];
-            parentSection = Section.objects.get(sectionedLayer=parentSectionedLayer)
+            if sectionJson["addSectionFormParentValue"] != "-1":
+                parentSectionedLayer = sectionJson["addSectionFormParentValue"].split("_")[-1];
+                parentSection = Section.objects.get(sectionedLayer=parentSectionedLayer)
+            else:
+                parentSection = None
+
             section = Section(name=sectionJson["name"], parentSection=parentSection)
             section.save()
             sectionToSend = serializers.serialize("json", [section], fields=["name", "layer", "sectionedLayer"])
             return JsonResponse({'message': 'section saved.', "sectionToSend":sectionToSend})
         except ValidationError as e:
+            print(e)
             return JsonResponse({'error': 'Could not add sections: '+e.__str__(), "details":"woot"}, status=500)
         except:
             return JsonResponse({'message': 'something went wrong when saving the section.'}, status=400)

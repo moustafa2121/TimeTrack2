@@ -6,18 +6,25 @@ from django.core.exceptions import ValidationError
 
 #todo: do we need a user to link everything or can we link it to each person's gdrive
 
-#e.g. a day
+#the session in which the user start at the start of the day and ends it by the end of the day
+#it encompasses all the activities (typically in a day)
+#the start and end of the day are specified by unix millis
 class SessionTime(models.Model):
     startFrom = models.IntegerField(primary_key=True)
     endTo = models.IntegerField(null=True, blank=True)
     archived = models.BooleanField(default=True)
 
+    sessionDetails = models.CharField(max_length=250, null=True, blank=True)
+
     def __str__(self):
         return datetime.fromtimestamp(self.startFrom/1000).date().__str__()
 
-#time intervals
-#e.g. Work > Project1 > frontend > button1
-#only 4 layers deep for the subsections
+#section is the category that the user is working on
+#a user could be working on project named Project 1 in which it will be organized as follows
+#Work > WebDev > Project 1
+#in which all 3 are of type Section and have parent/child relation
+#up to 4 layers deep
+#users can add sections and subsections
 class Section(models.Model):
     name = models.CharField(max_length=50)
     sectionedLayer = models.CharField(max_length=10, blank=True, null=True, default="2");
@@ -59,17 +66,8 @@ class Section(models.Model):
     def __str__(self):
         return str(self.sectionedLayer) + "_" + self.name
 
-    
-#todo: set as default values
-#ActionableChoices = [
-#    ("WK", "Working"),
-#    ("BR", "Break"),
-#    ("NB", "Natural Break"),
-#    ("IN", "Interrupted"),
-#    ("PR", "Procrastinated"),
-#    ("SL", "Sleep")
-#]
 
+#color choices for the actionables    
 ActionableChoicesColors = [    
     ("blue", "Blue"),
     ("green", "Green"),
@@ -82,20 +80,24 @@ ActionableChoicesColors = [
     ("darkmagenta", "Darkmagenta")
 ]
 
+#choices for the actionables
+#created as a Model instead of a list of tuples because they might be
+#modifiable by the user in future versions
 class ActionableChoices(models.Model):
-    name = models.CharField(max_length=15)
-    color = models.CharField(max_length=15, choices=ActionableChoicesColors, null=False, blank=True)
+    name = models.CharField(max_length=15, unique=True)
+    color = models.CharField(max_length=15, choices=ActionableChoicesColors, null=False, 
+                             blank=True, unique=True)
     
-    archivedStatus = models.BooleanField(default=False)
-
-    #todo: colors and names are unique to non-archive actionables
     def save(self, *args, **kwargs):
-
         return super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
-    
+
+#actionables are the actions a user can take during a section
+#if, for example, a user is working on a section named Project 1
+#the user can choose the actionable "Working" or "Break" depending on the current activity
+#an actionable refers to the session and the section it belongs to
 class Actionable(models.Model):
     currentSection = models.ForeignKey(Section, on_delete=models.PROTECT, null=True)
     currentSession = models.ForeignKey(SessionTime, on_delete=models.CASCADE, null=True)
@@ -109,7 +111,8 @@ class Actionable(models.Model):
     def __str__(self):
         return self.currentSession.__str__() +">"+self.name.name+">"+datetime.fromtimestamp(self.startFrom/1000).time().__str__()[:8]
 
-        
+    
+#todo
 #e.g. tasks to be checked when done
 class ToDo(models.Model):
     sectionRef = models.ForeignKey(Section, on_delete=models.SET_NULL, null=True, blank=True);
