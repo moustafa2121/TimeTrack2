@@ -96,7 +96,6 @@ for (i of actionableButtons) {
 
 function endActionable(previouslySelectedActionableButton) {
     previouslySelectedActionableButton.classList.remove("actionableButtonSelected");
-    currentSessionData.currentSessionActionables[currentActionable.startFrom] = currentActionable;
 
     //update the current log/actionable
     currentActionable.endTo = Date.now();
@@ -107,7 +106,7 @@ function endActionable(previouslySelectedActionableButton) {
     currentSessionData.totalTimeHolder += (currentActionable.endTo - currentActionable.startFrom);
 
     //draw the actionable
-    displayActionable(currentActionable, document.querySelector(".singleSessionActionablesContainer"), true, id=currentActionable.startFrom);
+    displayActionable(currentActionable, document.querySelector(".singleSessionActionablesContainer"), true, id = currentActionable.pkID);
     clearInterval(setIntervalRef);
     currentActionableOutput.textContent = formatTime(0);
     currentActionable = getNewCurrentActionable();
@@ -150,6 +149,7 @@ function addActionable() {
     })
         .then(response => response.json())
         .then(data => {
+            currentActionable.pkID = data["actionablePK"];
             addFadingMessage(data.message);
         })
         .catch(error => {
@@ -258,7 +258,7 @@ function displayActionable(obj, parentObject, actionablesModify=true, id=null) {
         parentObject.insertBefore(singleActionableDiv, parentObject.firstChild);
     else
         parentObject.appendChild(singleActionableDiv)
-
+    console.log(id);
     if (id)
         singleActionableDiv.id = id;
     
@@ -308,7 +308,7 @@ function displayActionable(obj, parentObject, actionablesModify=true, id=null) {
             currentObj.readOnly = true;
             currentObj.style.cursor = "default";
         });
-        currentSecondChild.querySelector("button").classList.add("sessionFadedButton");
+        //currentSecondChild.querySelector("button").classList.add("sessionFadedButton");
     }
 
     //edit the actionable, section, details, from and to.
@@ -338,12 +338,6 @@ function displayActionable(obj, parentObject, actionablesModify=true, id=null) {
     details.confirmer = confirmerFunction.bind(details);
     timeSpanFrom.confirmer = confirmerFunction.bind(timeSpanFrom);
     timeSpanTo.confirmer = confirmerFunction.bind(timeSpanTo);
-
-    actionableSelect.updater = updaterFunction.bind(actionableSelect, "actionableName");
-    sectionSelect.updater = updaterFunction.bind(sectionSelect, "currentSection");
-    details.updater = updaterFunction.bind(details, "detail");
-    timeSpanFrom.updater = updaterFunction.bind(timeSpanFrom, "startFrom");
-    timeSpanTo.updater = updaterFunction.bind(timeSpanTo, "endTo");
 }
 
 function updateActionable(event) {
@@ -381,13 +375,11 @@ function updateActionable(event) {
 
     //:go to the DB
     let constObjSend = {};
+    constObjSend["actionablePK"] = currentTarget.closest(".singleActionableDiv").id
     constObjSend[currentTarget.name] = newValue;
     currentTarget.oldValue = newValue;
 
-    //update the values in the current session
-    currentTarget.updater()
-
-    return;
+    //return;
 
     fetch("/update-actionable/", {
         method: "POST",
@@ -408,9 +400,4 @@ function updateActionable(event) {
 
 confirmerFunction = function () {
     console.log("oh yes indeed m8 "+ this.value);
-}
-
-updaterFunction = function (field) {
-    const currentTargetParent = this.closest(".singleActionableDiv");
-    currentSessionData.currentSessionActionables[currentTargetParent.id][field] = this.value;
 }

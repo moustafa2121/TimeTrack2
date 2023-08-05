@@ -85,7 +85,7 @@ def addActionable(request):
                                           currentSession=currentSession,
                                           detail=actionableJson["detail"])
             actionableObject.save()
-            return JsonResponse({'message': 'Data saved successfully.'})
+            return JsonResponse({'message': 'Data saved successfully.', "actionablePK":actionableObject.pk})
         except Exception as e:
             print("saving actionable exception: ", e)
             return JsonResponse({'message': 'something went wrong when saving the actionable.'})  

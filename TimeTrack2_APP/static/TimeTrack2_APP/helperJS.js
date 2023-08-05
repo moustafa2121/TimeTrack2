@@ -11,7 +11,6 @@ function getNewCurrentSessionData() {
         endTo: 0,
         activeSession: false,
         totalTimeHolder: 0,
-        currentSessionActionables: {},
     }
 }
 function getNewCurrentActionable() {
@@ -61,42 +60,61 @@ window.addEventListener("load", () => {
     localStorage.removeItem("currentSessionData");
     localStorage.removeItem("currentActionable");
 
-    //display the current session actionables
-    const parentObject = document.querySelector(".singleSessionActionablesContainer");
-    for (i in currentSessionData.currentSessionActionables) {
-        displayActionable(currentSessionData.currentSessionActionables[i], parentObject, true, id=i)
-    }
-
-    //fix the archived sessions display
-    archivedSessions = document.querySelectorAll(".singleSessionDiv"); 
-    for (i of archivedSessions) {
+    //fix the all sessions display
+    allSessions = document.querySelectorAll(".singleSessionDiv"); 
+    let currentActionableCheck = false;
+    for (i of allSessions) {
         if (!i.querySelector("#currentActionableDiv")) {
             let title = i.querySelector("span:nth-child(1)");
             const endTo = parseInt(title.getAttribute("data-raw-endTo"));
             const startFrom = parseInt(title.getAttribute("data-raw-startFrom"));
             const totalTime = endTo - startFrom;
-            title.textContent += " >>> Starting from: " + secondsToTime(startFrom) + " to: " + secondsToTime(endTo) + " for a total of: " + formatTime(Math.floor(totalTime/1000));
-            const barRef = i.querySelector(".barClass");
-            for (actionable of Array.from(i.querySelectorAll(".singleActionableDiv")).reverse()) {
-                const timeSpan = actionable.querySelector(".timeActionableDetail");
-                const startFrom = timeSpan.querySelector("span:nth-child(1)");
-                const endTo = timeSpan.querySelector("span:nth-child(3)");
-                actionable.actionableColor = getActionableColor(actionable.querySelector(".singleActionableName").textContent);
-                actionable.startFrom = parseInt(startFrom.getAttribute("data-raw-value"));
-                actionable.endTo = parseInt(endTo.getAttribute("data-raw-value"));
-                displayBar(barRef, actionable);
+            title.textContent += " >>> Starting from: " + secondsToTime(startFrom) + " to: " + secondsToTime(endTo) + " for a total of: " + formatTime(Math.floor(totalTime / 1000));
+            currentActionableCheck = false;
+        }
+        else
+            currentActionableCheck = true;
 
-                const color = actionable.querySelector(".singleActionableColor");
-                color.style.backgroundColor = actionable.actionableColor;
-                const section = actionable.querySelector(".singleActionableSection");
-                section.textContent = section.textContent.split("_")[1];
+        const barRef = i.querySelector(".barClass");
+        for (actionable of Array.from(i.querySelector(".singleSessionActionablesContainer").querySelectorAll(".singleActionableDiv")).reverse()) {
+            const timeSpan = actionable.querySelector(".timeActionableDetail");
+            const startFrom = timeSpan.querySelector("span:nth-child(1)");
+            const endTo = timeSpan.querySelector("span:nth-child(3)");
+            actionable.actionableColor = getActionableColor(actionable.querySelector(".singleActionableName").textContent);
+            actionable.startFrom = parseInt(startFrom.getAttribute("data-raw-value"));
+            actionable.endTo = parseInt(endTo.getAttribute("data-raw-value"));
+            displayBar(barRef, actionable);
 
-                startFrom.textContent = secondsToTime(actionable.startFrom);
-                endTo.textContent = secondsToTime(actionable.endTo);
-                const totalTime = timeSpan.querySelector("span:nth-child(4)");
-                totalTime.textContent = " Total: " + formatTime(Math.floor((parseInt(endTo.getAttribute("data-raw-value")) - parseInt(startFrom.getAttribute("data-raw-value"))) / 1000));
+            const color = actionable.querySelector(".singleActionableColor");
+            color.style.backgroundColor = actionable.actionableColor;
+            const section = actionable.querySelector(".singleActionableSection");
+            section.textContent = section.textContent.split("_")[1];
+
+            startFrom.textContent = secondsToTime(actionable.startFrom);
+            endTo.textContent = secondsToTime(actionable.endTo);
+            const totalTime = timeSpan.querySelector("span:nth-child(4)");
+            totalTime.textContent = " Total: " + formatTime(Math.floor((parseInt(endTo.getAttribute("data-raw-value")) - parseInt(startFrom.getAttribute("data-raw-value"))) / 1000));
+
+            if (currentActionableCheck) {
+                const tmp = actionable.querySelector(".singleActionableDetails");
+                const tmpNextSibling = tmp.nextSibling;
+                const tmpText = tmp.value;
+                tmp.remove();
+
+                let details = document.createElement("input");
+                details.className = "singleActionableDetails";
+                details.type = "text";
+                details.value = tmpText;
+                details.placeholder = "Actionable Details";
+                details.maxLength = 250;
+                actionable.insertBefore(details, tmpNextSibling);
+
+                details.addEventListener("change", updateActionable, false);
+                details.name = "detail";
+                details.oldValue = details.value;
             }
         }
+        
     }
 }, false);
 
