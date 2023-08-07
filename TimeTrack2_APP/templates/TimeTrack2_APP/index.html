@@ -2,8 +2,10 @@
 
 <!-- the main body -->
 {% block mainBodyContent %}
-    {% load static %}
+{% load static %}
 <script src="{% static 'TimeTrack2_APP/mainBodyContentScript.js' %}" defer></script>
+{{allSessions|json_script:"allSessions"}}
+{{testing}}
 
 <!-- responseMessage -->
 <div id="messagesContainer"></div>
@@ -30,64 +32,17 @@
 <br />
 
 <!-- current session -->
-<!--<div class="singleSessionDiv">
-    <div id="currentActionableDiv">
-        <h4 style="margin-left:5px; margin-bottom:10px">Current Actionable</h4>
-    </div>
-    <div class="barClass"></div>
-    <div class="singleSessionActionablesContainer">
-    </div>
-</div>-->
-<!-- todo: combine archived and non, just keep the currentActionableDiv separate  -->
-    {% for i, j in allSessions %}
-        {% if not i.archived %}
 <div class="singleSessionDiv">
     <div id="currentActionableDiv">
         <h4 style="margin-left:5px; margin-bottom:10px">Current Actionable</h4>
     </div>
     <div class="barClass"></div>
     <div class="singleSessionActionablesContainer">
-        {% for t in j%}
-        <div class="singleActionableDiv" id="{{t.pk}}">
-            <div class="singleActionableColor" style:"background-color:{{t.color}}"></div>
-            <span class="singleActionableName" title="{{t.name}}">{{t.name}}</span>
-            <span class="singleActionableSection" title={{t.currentSection}}>{{t.currentSection}}</span>
-            <span class="singleActionableDetails">{{t.detail}}</span>
-            <span class="timeActionableDetail">
-                <span data-raw-value="{{t.startFrom}}"></span>
-                <span>  -->  </span>
-                <span data-raw-value="{{t.endTo}}"></span>
-                <span>Total: </span>
-            </span>
-        </div>
-        {% endfor %}
     </div>
 </div>
-        {% else %}
-<div class="singleSessionDiv">
-    <span data-raw-startFrom="{{i.startFrom}}" data-raw-endTo="{{i.endTo}}">Session: {{i}}</span>
-    <div class="barClass"></div>
-    <div class="singleSessionActionablesContainer">
-        {% for t in j%}
-        <div class="singleActionableDiv">
-            <div class="singleActionableColor" style:"background-color:{{t.color}}"></div>
-            <span class="singleActionableName" title="{{t.name}}">{{t.name}}</span>
-            <span class="singleActionableSection" title={{t.currentSection}}>{{t.currentSection}}</span>
-            <span class="singleActionableDetails">{{t.detail}}</span>
-            <span class="timeActionableDetail">
-                <span data-raw-value="{{t.startFrom}}"></span>
-                <span>  -->  </span>
-                <span data-raw-value="{{t.endTo}}"></span>
-                <span>Total: </span>
-            </span>
-        </div>
-        {% endfor %}
-    </div>
-</div>
-    {% endif %}
-{% endfor %}
-{% endblock mainBodyContent%}
+<div id="archivedSessions"></div>
 
+{% endblock mainBodyContent%}
 
 <!-- left nav panel, contains sections -->
 {% block leftNavContent %}

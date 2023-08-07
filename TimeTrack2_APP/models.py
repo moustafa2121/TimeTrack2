@@ -2,6 +2,7 @@ from datetime import datetime
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.core.exceptions import ValidationError
+from rest_framework import serializers
 
 
 #todo: do we need a user to link everything or can we link it to each person's gdrive
@@ -66,7 +67,6 @@ class Section(models.Model):
     def __str__(self):
         return str(self.sectionedLayer) + "_" + self.name
 
-
 #color choices for the actionables    
 ActionableChoicesColors = [    
     ("blue", "Blue"),
@@ -112,6 +112,26 @@ class Actionable(models.Model):
         return self.currentSession.__str__() +">"+self.name.name+">"+datetime.fromtimestamp(self.startFrom/1000).time().__str__()[:8]
 
     
+class SectionSerializer(serializers.ModelSerializer):
+    #name = serializers.CharField(max_length=50)
+    sectionedLayer = models.CharField(max_length=10)
+    class Meta:
+        fields = ["sectionedLayer",]
+        model = Section
+
+class ActionableChoicesSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(max_length=15)
+    class Meta:
+        fields = ["name",]
+        model = ActionableChoices
+
+class ActionableSerializer(serializers.ModelSerializer):
+    currentSection = SectionSerializer(read_only=True)
+    name = ActionableChoicesSerializer(read_only=True)
+    class Meta:
+        fields = '__all__'
+        model = Actionable
+
 #todo
 #e.g. tasks to be checked when done
 class ToDo(models.Model):

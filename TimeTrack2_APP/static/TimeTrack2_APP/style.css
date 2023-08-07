@@ -78,6 +78,7 @@ body {
     padding: 0;
 }
 .subBarClass {
+    display: inline-block;
     height: 15px;
     margin: 0px;
     padding: 0;

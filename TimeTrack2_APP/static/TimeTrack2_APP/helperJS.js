@@ -3,8 +3,8 @@ const secondsInDay = 3600;
 
 //holds the current actionables and the current session data in local stroage
 //as persistant data to be used when refreshing/reloading the page
-let currentSessionData = getNewCurrentSessionData();
-let currentActionable = getNewCurrentActionable();
+let currentSessionHolder;
+let currentActionableHolder;
 function getNewCurrentSessionData() {
     return {
         previouslySelectedSection: null,
@@ -29,35 +29,41 @@ function getNewCurrentActionable() {
 //handles the closing/refresh of the webpage by storing persistant data in local storage
 //on closing
 window.addEventListener("unload", () => {
-    if (currentSessionData.activeSession) {//if there is an active session
-        localStorage.setItem("previouslySelectedSectionID", getSectionIdThroughParent(currentSessionData.previouslySelectedSection));
-        currentActionable.detail = document.querySelector("#currentActionableDiv .singleActionableDetails").value;
-        localStorage.setItem("currentSessionData", JSON.stringify(currentSessionData));
-        localStorage.setItem("currentActionable", JSON.stringify(currentActionable));
+    if (currentSessionHolder.activeSession) {//if there is an active session
+        localStorage.setItem("previouslySelectedSectionID", getSectionIdThroughParent(currentSessionHolder.previouslySelectedSection));
+        currentActionableHolder.detail = document.querySelector("#currentActionableDiv .singleActionableDetails").value;
+        localStorage.setItem("currentSessionData", JSON.stringify(currentSessionHolder));
+        localStorage.setItem("currentActionable", JSON.stringify(currentActionableHolder));
     }
 }, false);
 
-//on opening
+//on opening the page
+//attempts to load any data in the localStroage
+//if available it will display them
+//Also responsible for handling the archived sessions and displaying them
 window.addEventListener("load", () => {
-    currentSessionData = JSON.parse(localStorage.getItem("currentSessionData"));
-    if (currentSessionData) {//if there was an active session
+    currentSessionHolder = JSON.parse(localStorage.getItem("currentSessionData"));
+    if (currentSessionHolder) {//if there was an active session
         //set the selected section
         const previouslySelectedSectionID = localStorage.getItem("previouslySelectedSectionID");
-        currentSessionData.previouslySelectedSection = document.querySelector("#" + escapePeriodWithBackslashes(previouslySelectedSectionID) + " span");
-        currentSessionData.previouslySelectedSection.classList.add("spanSelected");
+        currentSessionHolder.previouslySelectedSection = document.querySelector("#" + escapePeriodWithBackslashes(previouslySelectedSectionID) + " span");
+        currentSessionHolder.previouslySelectedSection.classList.add("spanSelected");
 
         //start the actionable and session timer if there is an actionable that has started previously
-        currentActionable = JSON.parse(localStorage.getItem("currentActionable"));
-        if (currentActionable && currentActionable.startFrom != 0) {
-            startInterval(null);
-            switchFadedButtons();
+        currentActionableHolder = JSON.parse(localStorage.getItem("currentActionable"));
+        if (currentActionableHolder && currentActionableHolder.startFrom != 0) {
+            sessionSwitchFadedButtons();
+
+            startActionable();
+            //set the actionable button to be the selected one
+            document.querySelector("#actionable_" + escapeSpaceWithBackslashes(currentActionableHolder.actionableName)).classList.add("actionableButtonSelected");
         }
         else
-            currentActionable = getNewCurrentActionable();
+            currentActionableHolder = getNewCurrentActionable();
     }
     else {//else just start a new session data object and new actionable
-        currentSessionData = getNewCurrentSessionData();
-        currentActionable = getNewCurrentActionable();
+        currentSessionHolder = getNewCurrentSessionData();
+        currentActionableHolder = getNewCurrentActionable();
     }
 
     //remove the items from the local storage
@@ -65,78 +71,69 @@ window.addEventListener("load", () => {
     localStorage.removeItem("currentSessionData");
     localStorage.removeItem("currentActionable");
 
-    //fix the previous sessions display that were retrieved from the DB
-    allSessions = document.querySelectorAll(".singleSessionDiv"); 
-    let currentActionableCheck = false;
-    for (i of allSessions) {
-        if (!i.querySelector("#currentActionableDiv")) {
-            let title = i.querySelector("span:nth-child(1)");
-            const endTo = parseInt(title.getAttribute("data-raw-endTo"));
-            const startFrom = parseInt(title.getAttribute("data-raw-startFrom"));
+
+    //get all archived sessions from the html JSON
+    const archivedSessions = document.getElementById("archivedSessions");
+    const sessionsList = JSON.parse(document.getElementById('allSessions').textContent);
+
+    for (const sessionActionables of sessionsList) {
+        const session = JSON.parse(sessionActionables[0])[0];
+        if (!session["fields"]["archived"]) {//current (active) session
+            const actionablesContainer = document.getElementsByClassName("singleSessionActionablesContainer")[0];
+            displaySingleSession(actionablesContainer, sessionActionables[1], 2)
+        }
+        else {//for all archived sessions
+            //elements for a single session
+            const singleSessionDiv = document.createElement("div");
+            singleSessionDiv.className = "singleSessionDiv";
+            archivedSessions.appendChild(singleSessionDiv);
+
+            const title = document.createElement("h4");
+            const startFrom = session["pk"];
+            const endTo = session["fields"].endTo;
             const totalTime = endTo - startFrom;
-            title.textContent += " >>> Starting from: " + secondsToTime(startFrom) + " to: " + secondsToTime(endTo) + " for a total of: " + formatTime(Math.floor(totalTime / 1000));
-            currentActionableCheck = false;
+            title.textContent += "Session of " + epochMilliSecondsToDate(startFrom) + ": Starting from " + epochMilliSecondsToTime(startFrom) + " to " + epochMilliSecondsToTime(endTo) + ", for a total of " + totalSecondsToTime(Math.floor(totalTime / 1000));
+            singleSessionDiv.appendChild(title);
+
+            const barRef = document.createElement("div");
+            barRef.className = "barClass";
+            singleSessionDiv.appendChild(barRef);
+
+            const actionablesContainer = document.createElement("div");
+            actionablesContainer.className = "singleSessionActionablesContainer";
+            singleSessionDiv.appendChild(actionablesContainer);
+
+            displaySingleSession(actionablesContainer, sessionActionables[1], 1)
         }
-        else
-            currentActionableCheck = true;
-
-        const barRef = i.querySelector(".barClass");
-        for (actionable of Array.from(i.querySelector(".singleSessionActionablesContainer").querySelectorAll(".singleActionableDiv")).reverse()) {
-            const timeSpan = actionable.querySelector(".timeActionableDetail");
-            const startFrom = timeSpan.querySelector("span:nth-child(1)");
-            const endTo = timeSpan.querySelector("span:nth-child(3)");
-            actionable.actionableColor = getActionableColor(actionable.querySelector(".singleActionableName").textContent);
-            actionable.startFrom = parseInt(startFrom.getAttribute("data-raw-value"));
-            actionable.endTo = parseInt(endTo.getAttribute("data-raw-value"));
-            displayBar(barRef, actionable);
-
-            const color = actionable.querySelector(".singleActionableColor");
-            color.style.backgroundColor = actionable.actionableColor;
-            const section = actionable.querySelector(".singleActionableSection");
-            section.textContent = section.textContent.split("_")[1];
-
-            startFrom.textContent = secondsToTime(actionable.startFrom);
-            endTo.textContent = secondsToTime(actionable.endTo);
-            const totalTime = timeSpan.querySelector("span:nth-child(4)");
-            totalTime.textContent = " Total: " + formatTime(Math.floor((parseInt(endTo.getAttribute("data-raw-value")) - parseInt(startFrom.getAttribute("data-raw-value"))) / 1000));
-
-            if (currentActionableCheck) {
-                const tmp = actionable.querySelector(".singleActionableDetails");
-                const tmpNextSibling = tmp.nextSibling;
-                const tmpText = tmp.value;
-                tmp.remove();
-
-                let details = document.createElement("input");
-                details.className = "singleActionableDetails";
-                details.type = "text";
-                details.value = tmpText;
-                details.placeholder = "Actionable Details";
-                details.maxLength = 250;
-                actionable.insertBefore(details, tmpNextSibling);
-
-                details.addEventListener("change", updateActionable, false);
-                details.name = "detail";
-                details.oldValue = details.value;
-            }
-        }
-        
     }
 }, false);
 
-//for testing
-document.getElementById("totalButtonReset").addEventListener("click", (event) => {
-    localStorage.removeItem("previouslySelectedSectionID");
-    localStorage.removeItem("currentSessionData");
-    localStorage.removeItem("currentActionable");
 
-    currentSessionData = getNewCurrentSessionData();
-    currentActionable = getNewCurrentActionable();
-    location.reload()
-})
+//function that displays a single session and its actionable as per
+//the arguments passed from the load event of the page
+function displaySingleSession(actionablesContainer, sessionActionablesList, caseValue) {
+    //the list of all actionables of a single session
+    const currentActionables = JSON.parse(sessionActionablesList)
+    for (const currentActionable of currentActionables) {
+        //initialize an actionable object
+        actionable = {
+            startFrom: currentActionable["startFrom"],
+            endTo: currentActionable["endTo"],
+            currentSection: currentActionable["currentSection"].sectionedLayer,
+            detail: currentActionable["detail"],
+            actionableName: currentActionable["name"].name,
+            actionableColor: null,
+        };
+        actionable.actionableColor = getActionableColor(actionable.actionableName);
+
+        //display it
+        displayActionable(actionable, actionablesContainer, caseValue)
+    }
+}
+
 
 const messagesContainer = document.getElementById("messagesContainer");
 let messageContainerCounter = 0;
-
 //todo:fading messages effect is sucky when it comes to stacking
 //todo: different messages (e.g. success adding and error when adding section)
 //appear differently
@@ -168,14 +165,12 @@ function addFadingMessage(message, interval = 4000) {
     });
 }
 
-function isObject(targetObj) {
-    return Object.keys(targetObj).length === 0 && targetObj.constructor === Object;
-}
+
+//helper functions
 
 function escapeSpaceWithBackslashes(inputString) {
     return inputString.replace(/ /g, '\\ ');
 }
-
 function escapePeriodWithBackslashes(inputString) {
     return inputString.replace(/\./g, '\\.');
 }
@@ -189,16 +184,27 @@ function epochToSpecificTimezone(timeEpoch, offset = 0) {
     return nd.toLocaleString();
 }
 
-//takes seconds
+//takes epoch milliseconds
 //returns hh:mm:ss
-function secondsToTime(epoch) {
+function epochMilliSecondsToTime(epoch) {
     t = new Date(epoch);
     return ("0" + t.getHours()).slice(-2) + ":" + ("0" + t.getMinutes()).slice(-2) + ":" + ("0" + t.getSeconds()).slice(-2);
 }
 
+//takes epoch milliseconds
+//returns dd/mm/yyyy
+function epochMilliSecondsToDate(epoch) {
+    const date = new Date(epoch);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Month is zero-based
+    const year = date.getFullYear();
+
+    return `${day}/${month}/${year}`;
+}
+
 //takes seconds
-//returns hh:dd:mm string format
-function formatTime(seconds) {
+//returns hh:mm:ss
+function totalSecondsToTime(seconds) {
     var hours = Math.floor(seconds / 3600);
     var minutes = Math.floor((seconds % 3600) / 60);
     var remainingSeconds = seconds % 60;
@@ -217,13 +223,6 @@ function getCurrentSectionedLayerID() {
     return x.parentNode.id.split("_")[1];
 }
 
-function timeDifference(time1, time2) {
-    const [h1, m1] = time1.split(":").map(Number);
-    const [h2, m2] = time2.split(":").map(Number);
-    const diffMinutes = (h1 * 60 + m1) - (h2 * 60 + m2);
-    return `${String(Math.floor(diffMinutes / 60)).padStart(2, "0")}:${String(diffMinutes % 60).padStart(2, "0")}`;
-}
-
 function sectionedLayerIDToSectionName(target) {
     return document.getElementById("sectionContainerInd_" + target).querySelector("span").textContent.trim()
 }
@@ -239,6 +238,7 @@ function getListOfActionables() {
     let g = t.map(target => target.textContent);
     return g;
 }
+
 function getActionableColor(actionableName) {
     let t = document.querySelectorAll(".actionableButton");
     for (let i of t) {
@@ -248,3 +248,14 @@ function getActionableColor(actionableName) {
     }
     return "black";
 }
+
+//for testing
+document.getElementById("totalButtonReset").addEventListener("click", (event) => {
+    localStorage.removeItem("previouslySelectedSectionID");
+    localStorage.removeItem("currentSessionData");
+    localStorage.removeItem("currentActionable");
+
+    currentSessionHolder = getNewCurrentSessionData();
+    currentActionableHolder = getNewCurrentActionable();
+    location.reload()
+})

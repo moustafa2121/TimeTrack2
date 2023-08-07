@@ -1,18 +1,18 @@
 from django.shortcuts import render, redirect
+import json
 from django.core import serializers
 from django.core.exceptions import ValidationError
 from django.http import HttpResponseNotFound, JsonResponse
 from django.contrib import messages
-import json
 
 from .views_aux import SectionForm
-from .models import Section, Actionable, ActionableChoices, SessionTime
+from .models import Section, Actionable, ActionableChoices, SessionTime, ActionableSerializer
 
 
 #todo: login decorator
 def homepage(request):
     if request.method == 'POST':
-        pass
+        return HttpResponseNotFound()
     else:
         sectionForm = SectionForm()        
         sections = serializers.serialize('json', Section.objects.order_by("sectionedLayer"), fields=["name", "layer", "sectionedLayer"])
@@ -21,8 +21,12 @@ def homepage(request):
         recentSessionTime = SessionTime.objects.all().order_by("-startFrom")[:5]
         recentSessionTimeAndActionables = []
         for i in recentSessionTime:
-            actionables = list(Actionable.objects.filter(currentSession=i).order_by("-startFrom"))
-            recentSessionTimeAndActionables.append((i, actionables))
+            actionables = [ActionableSerializer(actionable).to_representation(actionable) for actionable in Actionable.objects.filter(currentSession=i).order_by("startFrom")]
+            actionables = json.dumps(actionables)
+            sessionT = serializers.serialize("json", [i])
+            recentSessionTimeAndActionables.append((sessionT, actionables))
+
+        json.dumps(recentSessionTimeAndActionables)
 
         return render(request, "TimeTrack2_APP/index.html", {"sectionForm":sectionForm, 
                                                              "sections":sections,
@@ -38,10 +42,10 @@ def updateSession(request):
                 newSession = SessionTime(startFrom=sessionJson["startFrom"], archived=False)
                 newSession.save()
             else:#ending session. update the DB
-                tmp = SessionTime.objects.get(startFrom=sessionJson["startFrom"])
-                tmp.endTo = sessionJson["endTo"]
-                tmp.archived=True
-                tmp.save()
+                newSession = SessionTime.objects.get(startFrom=sessionJson["startFrom"])
+                newSession.endTo = sessionJson["endTo"]
+                newSession.archived=True
+                newSession.save()
             return JsonResponse({'message': 'Session saved.'})
         except Exception as e:
             return JsonResponse({'error': 'Could not add/upodate session: '+e.__str__(), "details":"woot"}, status=500)
@@ -56,10 +60,10 @@ def addSection(request):
     if request.method == "POST":
         sectionJson = json.loads(request.body).get("passedSection")
         try:
-            if sectionJson["addSectionFormParentValue"] != "-1":
+            if sectionJson["addSectionFormParentValue"] != "-1":#for layer 2-4 sections
                 parentSectionedLayer = sectionJson["addSectionFormParentValue"].split("_")[-1];
                 parentSection = Section.objects.get(sectionedLayer=parentSectionedLayer)
-            else:
+            else:#for layer 1 sections
                 parentSection = None
 
             section = Section(name=sectionJson["name"], parentSection=parentSection)
@@ -78,7 +82,7 @@ def addSection(request):
 def addActionable(request):
     if request.method == 'POST':
         try:
-            actionableJson = json.loads(request.body).get('passedLogObject')
+            actionableJson = json.loads(request.body).get('currentActionableHolder')
             print(actionableJson)
             actionableChoice = ActionableChoices.objects.get(name=actionableJson["actionableName"])
             currentSection = Section.objects.get(sectionedLayer=actionableJson["currentSection"])

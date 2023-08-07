@@ -99,15 +99,16 @@ function displaySection(passedSection) {
     }
     else//remove the add button if the section is layer 4
         addSectionButton.remove();
-
+    
     //selecting an individual section as the current section
     content.addEventListener("click", function () {
         //first time choosing a section
-        if (currentSessionData && currentSessionData.previouslySelectedSection != content) {
+        if (currentSessionHolder && currentSessionHolder.previouslySelectedSection != content) {
             content.className = "spanSelected";
-            if (currentSessionData.previouslySelectedSection)//switching between sections
-                currentSessionData.previouslySelectedSection.classList.remove("spanSelected");
-            currentSessionData.previouslySelectedSection = content;
+            if (currentSessionHolder.previouslySelectedSection)//switching between sections
+                currentSessionHolder.previouslySelectedSection.classList.remove("spanSelected");
+            currentSessionHolder.previouslySelectedSection = content;
+
         }
     })
 }
