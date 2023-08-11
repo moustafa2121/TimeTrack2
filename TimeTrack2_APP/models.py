@@ -113,7 +113,6 @@ class Actionable(models.Model):
 
     
 class SectionSerializer(serializers.ModelSerializer):
-    #name = serializers.CharField(max_length=50)
     sectionedLayer = models.CharField(max_length=10)
     class Meta:
         fields = ["sectionedLayer",]

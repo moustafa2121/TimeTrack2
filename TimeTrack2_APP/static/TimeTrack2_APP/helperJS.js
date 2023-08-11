@@ -73,7 +73,7 @@ window.addEventListener("load", () => {
 
 
     //get all archived sessions from the html JSON
-    const archivedSessions = document.getElementById("archivedSessions");
+    const archivedSessionsDiv = document.getElementById("archivedSessions");
     const sessionsList = JSON.parse(document.getElementById('allSessions').textContent);
 
     for (const sessionActionables of sessionsList) {
@@ -86,7 +86,7 @@ window.addEventListener("load", () => {
             //elements for a single session
             const singleSessionDiv = document.createElement("div");
             singleSessionDiv.className = "singleSessionDiv";
-            archivedSessions.appendChild(singleSessionDiv);
+            archivedSessionsDiv.appendChild(singleSessionDiv);
 
             const title = document.createElement("h4");
             const startFrom = session["pk"];
@@ -117,6 +117,7 @@ function displaySingleSession(actionablesContainer, sessionActionablesList, case
     for (const currentActionable of currentActionables) {
         //initialize an actionable object
         actionable = {
+            pk: currentActionable["id"],
             startFrom: currentActionable["startFrom"],
             endTo: currentActionable["endTo"],
             currentSection: currentActionable["currentSection"].sectionedLayer,
@@ -202,17 +203,6 @@ function epochMilliSecondsToDate(epoch) {
     return `${day}/${month}/${year}`;
 }
 
-//takes seconds
-//returns hh:mm:ss
-function totalSecondsToTime(seconds) {
-    var hours = Math.floor(seconds / 3600);
-    var minutes = Math.floor((seconds % 3600) / 60);
-    var remainingSeconds = seconds % 60;
-    var formattedHours = hours.toString().padStart(2, '0');
-    var formattedMinutes = minutes.toString().padStart(2, '0');
-    var formattedSeconds = remainingSeconds.toString().padStart(2, '0');
-    return formattedHours + ':' + formattedMinutes + ':' + formattedSeconds;
-}
 
 function getSectionIdThroughParent(span) {
     return span.parentElement.id;
@@ -224,12 +214,14 @@ function getCurrentSectionedLayerID() {
 }
 
 function sectionedLayerIDToSectionName(target) {
-    return document.getElementById("sectionContainerInd_" + target).querySelector("span").textContent.trim()
+    //return document.getElementById("sectionContainerInd_" + target).querySelector("span").textContent.trim();
+    return target+"_"+document.getElementById("sectionContainerInd_" + target).querySelector("span").textContent.trim();
 }
+
 
 function getListOfSections() {
     let t = Array.from(document.querySelectorAll(".sectionContainerInd"));
-    let g = t.map(target => target.querySelector("span").textContent.trim());
+    let g = t.map(target => target.id.split("_")[1]+"_"+target.querySelector("span").textContent.trim());
     return g;
 }
 
@@ -259,3 +251,217 @@ document.getElementById("totalButtonReset").addEventListener("click", (event) =>
     currentActionableHolder = getNewCurrentActionable();
     location.reload()
 })
+
+//takes seconds
+//returns hh:mm:ss
+function totalSecondsToTime(seconds) {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const remainingSeconds = seconds % 60;
+    const formattedHours = hours.toString().padStart(2, '0');
+    const formattedMinutes = minutes.toString().padStart(2, '0');
+    const formattedSeconds = remainingSeconds.toString().padStart(2, '0');
+    return formattedHours + ':' + formattedMinutes + ':' + formattedSeconds;
+}
+
+
+//start and end is in epoch time
+//userInput is in hh:mm:ss
+//if the input is not in range, it returns false
+//if it is in range, it will return a Date object of the userInput
+function inputInRange(start, end, userInput) {
+    //esnure that end > start
+    if (start > end)
+        return false;
+    //get the date of the start and end
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    //get time in hh:mm:ss
+    const startTime = epochMilliSecondsToTime(start);
+    const endTime = epochMilliSecondsToTime(end);
+    
+
+    //if the start and end are in the same day, just make sure that 
+    //user input  is between these two values
+    if (areDatesInSameDay(startDate, endDate)) {
+        //console.log("they are on the same day")
+        if (isTimeBetween_threeValues(startTime, endTime, userInput)) {
+            return new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate(), ...userInput.split(":"));
+        }
+        else {
+            return false;
+        }
+    }
+    else {//if they are not the same day
+        //check if the userInput is between the startTime and 12am
+        //or it is between 12am and endTime
+        if (isTimeBetween_threeValues(startTime, "00:00:00", userInput)) {
+            //console.log("user input is between start and 12 am");
+            return new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate(), ...userInput.split(":"));
+        }
+        else if (isTimeBetween_threeValues("00:00:00", endTime, userInput)) {
+            //console.log("user input is between 12am and end");
+            return new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate(), ...userInput.split(":"));
+        }
+        else {
+            //console.log("user input is NOT between");
+            return false;
+        }
+    }
+}
+
+//checks if the user input is between start and end time
+function isTimeBetween_threeValues(startTime, endTime, userTime) {
+    const [startHours, startMinutes, startSeconds] = startTime.split(':').map(Number);
+    const [endHours, endMinutes, endSeconds] = endTime.split(':').map(Number);
+    const [userHours, userMinutes, userSeconds] = userTime.split(':').map(Number);
+
+    const startDate = new Date(0);
+    startDate.setUTCHours(startHours);
+    startDate.setUTCMinutes(startMinutes);
+    startDate.setUTCSeconds(startSeconds);
+
+    const endDate = new Date(0);
+    endDate.setUTCHours(endHours);
+    endDate.setUTCMinutes(endMinutes);
+    endDate.setUTCSeconds(endSeconds);
+
+    const userDate = new Date(0);
+    userDate.setUTCHours(userHours);
+    userDate.setUTCMinutes(userMinutes);
+    userDate.setUTCSeconds(userSeconds);
+
+    return userDate >= startDate && userDate <= endDate;
+}
+
+//takes two dates of type Date
+//returns if they are in the same EXACT day or not
+function areDatesInSameDay(date1, date2) {
+    return (
+        date1.getFullYear() === date2.getFullYear() &&
+        date1.getMonth() === date2.getMonth() &&
+        date1.getDate() === date2.getDate()
+    );
+}
+
+
+
+
+
+//below are test functions (not very good) for checking usertimeinput in range
+
+//as per the function name
+function getRandomDateWithin24Hours(inputDate) {
+    const inputTime = inputDate.getTime();
+    const maxOffset = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+    const randomOffset = random() * maxOffset;
+    const randomTime = inputTime + randomOffset;
+    return new Date(randomTime);
+}
+
+//takes a start and end Date object
+//start must be less than end date
+//the total duration between start and must be less than 24 hours
+//returns a time between the start in the hh:mm:ss format
+//does NOT work as intended
+function getRandomInputInRange(start, end, isInRange) {
+    const startTime = start.getTime();
+    const endTime = end.getTime();
+
+    let randomTime;
+    if (isInRange) {
+        randomTime = random() * Math.abs(endTime - startTime) + startTime;
+        return new Date(randomTime).toTimeString().slice(0, 8);
+    }
+    else
+        return getRandomInputInRange(end, start, true);
+}
+
+//takes a yyyy,mm,dd and generates random time
+//returns a Date object
+function getRandomDate(yyyy, mm, dd) {
+    const randomHours = Math.floor(random() * 24);      // 0 to 23
+    const randomMinutes = Math.floor(random() * 60);    // 0 to 59
+    const randomSeconds = Math.floor(random() * 60);    // 0 to 59
+    const randomTime = new Date(yyyy, mm - 1, dd, randomHours, randomMinutes, randomSeconds);
+    return randomTime;
+}
+
+//get random int from 0 to max
+function getRandomInt(max) {
+    return Math.floor(random() * max);
+}
+//seeds the random number
+// Takes any integer
+let m_w = 123456789;
+let m_z = 987654321;
+const mask = 0xffffffff;
+function seed(tmp) {
+    const i = Date.now() + tmp
+    m_w = (123456789 + i) & mask;
+    m_z = (987654321 - i) & mask;
+}
+// Returns number between 0 (inclusive) and 1.0 (exclusive),
+// just like Math.random().
+function random() {
+    m_z = (36969 * (m_z & 65535) + (m_z >> 16)) & mask;
+    m_w = (18000 * (m_w & 65535) + (m_w >> 16)) & mask;
+    var result = ((m_z << 16) + (m_w & 65535)) >>> 0;
+    result /= 4294967296;
+    return result;
+}
+
+
+
+//generates startDate and endDate that may or may not be on the same day
+//the startDate is always less than the endDate
+//user input is randomly generated between them
+//does NOT work as intended
+function automatedTimeComparisonTesting() {
+    //set the startDate
+    const startDate = getRandomDate(2023, 6, 22);
+    //seed the random
+    seed(startDate.getHours());
+    const endDate = getRandomDateWithin24Hours(startDate);
+
+    //randomly generate user input
+    let inRangeCheck = true;
+    if (Date.now() % 2 === 0)
+        inRangeCheck = false;
+
+    const userInput = getRandomInputInRange(startDate, endDate, inRangeCheck);
+    console.log(new Array(startDate, endDate, userInput));
+    console.log("hours difference: " + (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60))
+    console.log(inRangeCheck + " " + inputInRange(startDate, endDate, userInput));
+}
+
+//manuel values for time testing
+//same day, between two values in the pm
+const testTimeValues1 = [new Date(2023, 08, 08, 23, 00, 00), new Date(2023, 08, 08, 23, 07, 00), "23:05:01"];
+//same day, between two values in the am
+const testTimeValues2 = [new Date(2023, 08, 08, 00, 59, 59), new Date(2023, 08, 08, 10, 01, 00), "07:00:00"];
+//same day, not between them
+const testTimeValues3 = [new Date(2023, 08, 08, 23, 00, 00), new Date(2023, 08, 08, 23, 30, 00), "01:29:01"];
+//not same day, between them in the pm
+const testTimeValues4 = [new Date(2023, 08, 08, 23, 59, 59), new Date(2023, 08, 09, 00, 01, 00), "00:00:01"];
+//not same day, between them in the am
+const testTimeValues5 = [new Date(2023, 08, 08, 23, 00, 00), new Date(2023, 08, 09, 5, 01, 00), "00:00:01"];
+//not same day, between them on 12 am
+const testTimeValues6 = [new Date(2023, 08, 08, 23, 00, 00), new Date(2023, 08, 09, 17, 01, 00), "00:00:01"];
+//not same day, between them on 12 am
+const testTimeValues7 = [new Date(2023, 08, 08, 23, 00, 00), new Date(2023, 08, 09, 23, 01, 00), "00:00:00"];
+//not same day, not between them
+const testTimeValues8 = [new Date(2023, 08, 08, 23, 07, 00), new Date(2023, 08, 09, 23, 01, 00), "23:05:01"];
+
+const arrayTester = [testTimeValues1, testTimeValues2, testTimeValues3, testTimeValues4, testTimeValues5, testTimeValues6, testTimeValues7, testTimeValues8]
+const expectedValues = [true, true, false, true, true, true, true, false]
+
+function testTimeComparison(arrayForTesting, expectedValuesOfArray) {
+    arrayForTesting.forEach((dateArray, index) => {
+        const t1 = new Date(dateArray[0]).getTime();
+        const t2 = new Date(dateArray[1]).getTime();
+        console.log(dateArray);
+        console.log("Results: " + inputInRange(t1, t2, dateArray[2]));
+        console.log("Expected results: " + expectedValuesOfArray[index]);
+    });
+}

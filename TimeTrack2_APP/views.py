@@ -10,14 +10,18 @@ from .models import Section, Actionable, ActionableChoices, SessionTime, Actiona
 
 
 #todo: login decorator
+#the main page
+#mostly responsible of getting data for rendering
 def homepage(request):
     if request.method == 'POST':
         return HttpResponseNotFound()
     else:
+        #for used to add new sections
         sectionForm = SectionForm()        
         sections = serializers.serialize('json', Section.objects.order_by("sectionedLayer"), fields=["name", "layer", "sectionedLayer"])
         actionablesChoices = ActionableChoices.objects.all();
         
+        #get the 5 most recent sessions and their actionables
         recentSessionTime = SessionTime.objects.all().order_by("-startFrom")[:5]
         recentSessionTimeAndActionables = []
         for i in recentSessionTime:
@@ -26,14 +30,15 @@ def homepage(request):
             sessionT = serializers.serialize("json", [i])
             recentSessionTimeAndActionables.append((sessionT, actionables))
 
+        #json it
         json.dumps(recentSessionTimeAndActionables)
-
+        #render
         return render(request, "TimeTrack2_APP/index.html", {"sectionForm":sectionForm, 
                                                              "sections":sections,
                                                              "actionablesChoices":actionablesChoices,
                                                              "allSessions":recentSessionTimeAndActionables})
 
-
+#
 def updateSession(request):
     if request.method == "POST":
         sessionJson = json.loads(request.body)["passedSession"]
@@ -55,7 +60,7 @@ def updateSession(request):
     elif request.method == 'GET':
         return HttpResponseNotFound()
 
-
+#called on by fetchAPI when adding a new section
 def addSection(request):
     if request.method == "POST":
         sectionJson = json.loads(request.body).get("passedSection")
@@ -78,12 +83,12 @@ def addSection(request):
             
     elif request.method == 'GET':
         return HttpResponseNotFound()
-        
+
+#called on when an actionable's life-cycle ends and saved in the DB
 def addActionable(request):
     if request.method == 'POST':
         try:
             actionableJson = json.loads(request.body).get('currentActionableHolder')
-            print(actionableJson)
             actionableChoice = ActionableChoices.objects.get(name=actionableJson["actionableName"])
             currentSection = Section.objects.get(sectionedLayer=actionableJson["currentSection"])
             currentSession = SessionTime.objects.get(startFrom=actionableJson["currentSession"])
@@ -94,35 +99,33 @@ def addActionable(request):
                                           currentSession=currentSession,
                                           detail=actionableJson["detail"])
             actionableObject.save()
-            return JsonResponse({'message': 'Data saved successfully.', "actionablePK":actionableObject.pk})
-        except Exception as e:
-            print("saving actionable exception: ", e)
+            return JsonResponse({'message': 'Data saved successfully.', "pk":actionableObject.pk})
+        except Exception:
             return JsonResponse({'message': 'something went wrong when saving the actionable.'})  
     elif request.method == 'GET':
         return HttpResponseNotFound()
 
+#called on whenever a field of the actionable is change (After being validated in the frontend)
 def updateActionable(request):
-    print("olo")
     if request.method == 'POST':
         try:
-            x = json.loads(request.body)
-            print(x)
-            #todo add related session and section
-            #actionableJson = json.loads(request.body).get('passedLogObject')
-            #actionableChoice = ActionableChoices.objects.get(name=actionableJson["actionable"])
-            #currentSection = Section.objects.get(sectionedLayer=actionableJson["currentSection"])
-            #actionableObject = Actionable(name=actionableChoice, startFrom=actionableJson["from"], endTo=actionableJson["to"], currentSection=currentSection)
-            #actionableObject.save()
+            passedActionable = json.loads(request.body)
+            print(passedActionable)
+            fieldUpdatedName = list(passedActionable.keys())[1]
+            fieldUpdatedValue = list(passedActionable.values())[1]
+            
+            if fieldUpdatedName == "currentSection":
+                fieldUpdatedValue = Section.objects.get(sectionedLayer=fieldUpdatedValue.split("_")[0])
+            elif fieldUpdatedName == "name":
+                fieldUpdatedValue = ActionableChoices.objects.get(name=fieldUpdatedValue)
+            
+            actionableObject = Actionable.objects.get(pk=passedActionable["pk"])
+            setattr(actionableObject, fieldUpdatedName, fieldUpdatedValue)
 
+            actionableObject.save()
             return JsonResponse({'message': 'Data updated successfully.'})
         except Exception as e:
             print("updated actionable exception: ", e)
             return JsonResponse({'message': 'something went wrong when updating the actionable.'})  
     elif request.method == 'GET':
         return HttpResponseNotFound()
-
-    
-
-#just copy stuff from the homepage view to keep clean
-def addNewSection(request):
-    pass

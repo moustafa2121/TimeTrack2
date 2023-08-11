@@ -115,7 +115,7 @@ function displaySection(passedSection) {
 
 //sends a new section to the DB using fetchAPI
 function saveSection(event) {
-    //prevent from submitting the form
+    //prevent submitting the form
     event.preventDefault();
     const form = event.target;
     const addSectionFormParentValue = form.elements["addSectionFormParent"].value;
