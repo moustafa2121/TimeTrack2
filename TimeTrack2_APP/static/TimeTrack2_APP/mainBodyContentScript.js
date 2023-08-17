@@ -51,6 +51,7 @@ buttonEndingSession.addEventListener("click", () => {
         totalSessionTimeOutput.textContent = totalSecondsToTime(0);
         //intialize a new currentSessionData
         currentSessionHolder = getNewCurrentSessionData();
+                
     }
 });
 
@@ -71,6 +72,9 @@ function sessionSwitchFadedButtons() {
 function updateSession() {
     if (!currentSessionHolder.activeSession) {//ending the session
         currentSessionHolder.endTo = Date.now();
+        //disable it temorarily, wait for the session to save and
+        //for the page to reloag
+        buttonStartingSession.disabled = true;
     }
     fetch("/update-session/", {
         method: "POST",
@@ -82,10 +86,16 @@ function updateSession() {
     })
         .then(response => response.json())
         .then(data => {
-            addFadingMessage(data.message);            
+            //reload the page so the previous session is placed within the archived ones in the homepage
+            if (!currentSessionHolder.activeSession) {
+                location.reload();
+                buttonStartingSession.disabled = false;
+            }
+            addFadingMessage(data.message);
         })
         .catch(error => {
             addFadingMessage(error);
+            buttonStartingSession.disabled = false;
         });
 }
 
@@ -142,14 +152,14 @@ function endActionable() {
     currentActionableHolder.endTo = Date.now();
     currentActionableHolder.detail = document.querySelector("#currentActionableDiv .singleActionableDetails").value;
 
-    //send it back to the server using fetchAPI
-    addActionable();
-
     //add the total time of the actionable to the totam time of the session
     currentSessionHolder.totalTimeHolder += (currentActionableHolder.endTo - currentActionableHolder.startFrom);
 
-    //display the actionable under the current session
-    displayActionable(currentActionableHolder, document.querySelector(".singleSessionActionablesContainer"), 2);
+    //send it back to the server using fetchAPI
+    //this ensures that the actionable is not displayed until it is saved in the
+    //backend and has an ID
+    //the current actionable is done with, so a deep copy is sent
+    addActionable({...currentActionableHolder});
 
     //clear the interval of the actionable
     clearInterval(timerIntervalRef);
@@ -224,21 +234,25 @@ function displayActionable_firstPart(passedActionable, parentObject, caseValue) 
 
     //details
     let details;
-    if (caseValue != 1) {
+    if (caseValue != 1 ) {
         details = document.createElement("input");
         details.placeholder = "Actionable Details";
         details.type = "text";
         details.maxLength = 250;
-        //add an event listener
-        details.addEventListener("change", preUpdateActionable, false);
         details.name = "detail";
         details.oldValue = details.value;
         details.validator = validatorFunction.bind(details);
+        details.value = passedActionable.detail;
+
+        //add an event listener
+        if (caseValue != 4)
+            details.addEventListener("change", preUpdateActionable, false);
     }
     else 
         details = document.createElement("span");
+        details.textContent = passedActionable.detail;
+
     details.className = "singleActionableDetails";
-    details.value = passedActionable.detail;
     parentObject.appendChild(details);
 }
 
@@ -477,32 +491,34 @@ function timeValidatorFunction(userInput) {
     return false;
 }
 
-
 //used by actionable fields to validate their input
 function validatorFunction() {
     return true;
 }
 
-//sends a new actionable to the DB using fetchAPI
-function addActionable() {
+//sends a new actionable to the DB using fetchAPI, when resolved
+//it will give the passedActionable id (from the DB)
+//and then it will display the actionable under the current session container
+function addActionable(passedActionable) {
     fetch("/add-actionable/", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
             "X-CSRFToken": document.querySelector('input[name="csrfmiddlewaretoken"]').value
         },
-        body: JSON.stringify({ "currentActionableHolder": currentActionableHolder })
+        body: JSON.stringify({ "currentActionableHolder": passedActionable })
     })
         .then(response => response.json())
         .then(data => {
-            currentActionableHolder.pk = data["pk"];
             addFadingMessage(data.message);
+            passedActionable.pk = data["pk"];//set the id
+            displayActionable(passedActionable, document.querySelector(".singleSessionActionablesContainer"), 2);
         })
         .catch(error => {
             addFadingMessage(error);
         });
 }
-
+    
 
 //inititalize a select, used to set up a modifiable actionable name and its section in
 //the actionable list of the current session
