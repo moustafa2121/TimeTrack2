@@ -11,7 +11,7 @@ from .models import Section, Actionable, ActionableChoices, SessionTime, Actiona
 
 #todo: login decorator
 #the main page
-#mostly responsible of getting data for rendering
+#mostly responsible for getting recent/current sessions for rendering
 def homepage(request):
     if request.method == 'POST':
         return HttpResponseNotFound()
@@ -22,7 +22,7 @@ def homepage(request):
         actionablesChoices = ActionableChoices.objects.all();
         
         #get the 5 most recent sessions and their actionables
-        recentSessionTime = SessionTime.objects.all().order_by("-startFrom")[:5]
+        recentSessionTime = SessionTime.objects.filter(archived=True).order_by("-startFrom")[:5]
         recentSessionTimeAndActionables = []
         for i in recentSessionTime:
             actionables = [ActionableSerializer(actionable).to_representation(actionable) for actionable in Actionable.objects.filter(currentSession=i).order_by("startFrom")]
@@ -32,13 +32,26 @@ def homepage(request):
 
         #json it
         json.dumps(recentSessionTimeAndActionables)
+
+        #get the current session (and its actionables), if any
+        currentSessionTime = SessionTime.objects.filter(archived=False)
+        if len(currentSessionTime) != 0:
+            currentSessionTime = currentSessionTime[0]
+            actionables = [ActionableSerializer(actionable).to_representation(actionable) for actionable in Actionable.objects.filter(currentSession=currentSessionTime).order_by("-startFrom")]
+            actionables = json.dumps(actionables)
+            sessionT = serializers.serialize("json", [currentSessionTime])
+            currentSessionTimeAndActionables = [sessionT, actionables]
+        else:
+            currentSessionTimeAndActionables = []
+
         #render
         return render(request, "TimeTrack2_APP/index.html", {"sectionForm":sectionForm, 
                                                              "sections":sections,
                                                              "actionablesChoices":actionablesChoices,
-                                                             "allSessions":recentSessionTimeAndActionables})
+                                                             "allSessions":recentSessionTimeAndActionables,
+                                                             "currentSessionDB":currentSessionTimeAndActionables})
 
-#
+
 def updateSession(request):
     if request.method == "POST":
         sessionJson = json.loads(request.body)["passedSession"]
@@ -100,7 +113,7 @@ def addActionable(request):
                                           detail=actionableJson["detail"])
             actionableObject.save()
             return JsonResponse({'message': 'Data saved successfully.', "pk":actionableObject.pk})
-        except Exception:
+        except Exception as e:
             return JsonResponse({'message': 'something went wrong when saving the actionable.'})  
     elif request.method == 'GET':
         return HttpResponseNotFound()

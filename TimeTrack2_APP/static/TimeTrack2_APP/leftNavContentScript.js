@@ -102,16 +102,11 @@ function displaySection(passedSection) {
     
     //selecting an individual section as the current section
     content.addEventListener("click", function () {
-        //first time choosing a section
         if (currentSessionHolder && currentSessionHolder.previouslySelectedSection != content) {
             content.className = "spanSelected";
             if (currentSessionHolder.previouslySelectedSection)//switching between sections
                 currentSessionHolder.previouslySelectedSection.classList.remove("spanSelected");
             currentSessionHolder.previouslySelectedSection = content;
-            //if there is already an actionable running
-            //then stop it and start a new one
-            if (document.querySelector(".actionableButtonSelected"))
-                defaultActionable.click()
         }
     })
 }

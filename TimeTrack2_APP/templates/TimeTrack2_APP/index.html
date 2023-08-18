@@ -5,6 +5,7 @@
 {% load static %}
 <script src="{% static 'TimeTrack2_APP/mainBodyContentScript.js' %}" defer></script>
 {{allSessions|json_script:"allSessions"}}
+{{currentSessionDB|json_script:"currentSessionDB"}}
 {{testing}}
 
 <!-- responseMessage -->
@@ -15,8 +16,6 @@
     <h4 style="float:left">Current Session</h4>
     <a style="margin-left:70px" id="totalSessionTimeOutput"></a>
     <button style="float:right" id="buttonEndSession" class="sessionFadedButton"> End Session</button>
-    <button style="float:right" id="buttonStartingSession"> Start New Session</button>
-
 </div>
 
 <!--actionable buttons-->

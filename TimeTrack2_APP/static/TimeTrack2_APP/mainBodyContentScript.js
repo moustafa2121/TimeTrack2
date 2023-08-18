@@ -3,31 +3,44 @@ let timerIntervalRef;
 
 //list of actionables buttons
 const actionableButtons = document.getElementsByClassName("actionableButton");
-const defaultActionable = document.getElementById("actionable_Working");
 
 //handling sessions
 const totalSessionTimeOutput = document.getElementById("totalSessionTimeOutput");
 totalSessionTimeOutput.textContent = totalSecondsToTime(0);
 
 //on starting a session
-const buttonStartingSession = document.getElementById("buttonStartingSession");
-buttonStartingSession.addEventListener("click", () => {
-    if (!currentSessionHolder.previouslySelectedSection) {//select a section
-        alert("You need to select the current Section");
-        return;
-    }
-
+//called on by the first actionable click
+//return a promise so the caller waits for the session to be saved in the DB
+//this is because so the followup actionable(s) have a sessionTime
+//object in the DB to relate to
+function startSession(){    
     //set the session to be active
     currentSessionHolder.activeSession = true;
     currentSessionHolder.startFrom = Date.now();
-    updateSession();//save the new session
 
-    //click on the default actionable
-    defaultActionable.click();
-
-    //switch the fading effect of the start/end button
-    sessionSwitchFadedButtons();
-});
+    //disabled the actionable buttons - until the session is finished saving
+    Array.from(actionableButtons).map(target => target.disabled = true)
+    //save the new session and return a fetch
+    return fetch("/update-session/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": document.querySelector('input[name="csrfmiddlewaretoken"]').value
+        },
+        body: JSON.stringify({ "passedSession": currentSessionHolder })
+        })
+        .then(response => response.json())
+        .then(data => {
+            Array.from(actionableButtons).map(target => target.disabled = false)
+            addFadingMessage(data.message);
+            //after the session in the DB, activate the button ending session
+            buttonEndingSession.classList.remove("sessionFadedButton");
+        })
+        .catch(error => {
+            addFadingMessage(error);
+            Array.from(actionableButtons).map(target => target.disabled = false)
+        });
+}
 
 //on ending a session
 const buttonEndingSession = document.getElementById("buttonEndSession");
@@ -41,41 +54,22 @@ buttonEndingSession.addEventListener("click", () => {
         currentSessionHolder.previouslySelectedSection.classList.remove("spanSelected");
         //set the session to false
         currentSessionHolder.activeSession = false;
-        //update the session in the db
-        updateSession();
 
-        //switch the fading effect of the start/end button
-        sessionSwitchFadedButtons();
+        //update the session in the db
+        endSession();
 
         //reset the timer display of the total session time
         totalSessionTimeOutput.textContent = totalSecondsToTime(0);
         //intialize a new currentSessionData
         currentSessionHolder = getNewCurrentSessionData();
-                
     }
 });
 
-//when session is active the buttonStartingSession is faded and the buttonEndingSession
-//is normal. when inactive session, it is opposite
-function sessionSwitchFadedButtons() {
-    if (currentSessionHolder.activeSession) {
-        buttonStartingSession.classList.add("sessionFadedButton");
-        buttonEndingSession.classList.remove("sessionFadedButton");
-    }
-    else {
-        buttonEndingSession.classList.add("sessionFadedButton");
-        buttonStartingSession.classList.remove("sessionFadedButton");
-    }
-}
-
-//saves the session when starting/ending it
-function updateSession() {
-    if (!currentSessionHolder.activeSession) {//ending the session
-        currentSessionHolder.endTo = Date.now();
-        //disable it temorarily, wait for the session to save and
-        //for the page to reloag
-        buttonStartingSession.disabled = true;
-    }
+//saves the session when ending it
+function endSession() {
+    //disable actionables temorarily, wait for the session to save
+    Array.from(actionableButtons).map(target => target.disabled = true)
+    currentSessionHolder.endTo = Date.now();
     fetch("/update-session/", {
         method: "POST",
         headers: {
@@ -84,33 +78,38 @@ function updateSession() {
         },
         body: JSON.stringify({ "passedSession": currentSessionHolder })
     })
-        .then(response => response.json())
-        .then(data => {
-            //reload the page so the previous session is placed within the archived ones in the homepage
-            if (!currentSessionHolder.activeSession) {
-                location.reload();
-                buttonStartingSession.disabled = false;
-            }
-            addFadingMessage(data.message);
-        })
-        .catch(error => {
-            addFadingMessage(error);
-            buttonStartingSession.disabled = false;
-        });
+    .then(response => response.json())
+    .then(data => {
+        //switch the fading effect of the start/end button
+        buttonEndingSession.classList.add("sessionFadedButton");
+
+        //reload the page so the previous session is placed within the archived ones in the homepage
+        location.reload();
+        addFadingMessage(data.message);
+        Array.from(actionableButtons).map(target => target.disabled = false)
+    })
+    .catch(error => {
+        location.reload();
+        addFadingMessage(error);
+        Array.from(actionableButtons).map(target => target.disabled = false)
+    });                
 }
 
 //display the actionables
 //assign the event listners for each button
 for (const actionableButton of actionableButtons) {
-    actionableButton.addEventListener("click", function () {
-        if (!currentSessionHolder.activeSession) {//need to start a session
-            alert("You need to start a session");
+    actionableButton.addEventListener("click", async function () {
+        if (!currentSessionHolder.previouslySelectedSection) {//select a section
+            alert("You need to select the current Section");
             return;
         }
 
+        //start a session
+        //a promise to wait for a session to be saved
+        if (!currentSessionHolder.activeSession)
+            await startSession();
+
         //end the previous actionable if there was one
-        //this is not triggered when the startSession event clicks on the
-        //default actionable (since the currentActionable has startFrom == 0)
         if (currentActionableHolder && currentActionableHolder.startFrom != 0)
             endActionable();
 
@@ -123,6 +122,9 @@ for (const actionableButton of actionableButtons) {
         currentActionableHolder.currentSection = getCurrentSectionedLayerID();
         currentActionableHolder.currentSession = currentSessionHolder.startFrom;
 
+        //add it to the DB. this function will add the pk
+        //from DB to the currentActionableHolder
+        addActionable(currentActionableHolder);
         //start the timer 
         startActionable();
     })
@@ -155,11 +157,16 @@ function endActionable() {
     //add the total time of the actionable to the totam time of the session
     currentSessionHolder.totalTimeHolder += (currentActionableHolder.endTo - currentActionableHolder.startFrom);
 
-    //send it back to the server using fetchAPI
-    //this ensures that the actionable is not displayed until it is saved in the
-    //backend and has an ID
-    //the current actionable is done with, so a deep copy is sent
-    addActionable({...currentActionableHolder});
+    //display the current actionable in the current session actionables
+    displayActionable(currentActionableHolder, document.querySelector(".singleSessionActionablesContainer"), 2);
+
+    //get the endTo for the current actionable we just displayed
+    const currentActionableEndTo = document.querySelectorAll(`[id="${currentActionableHolder.pk}"].singleActionableDiv .timeActionableDetail input`)[1];
+    //send the endTo element to the update method
+    //no need to preUpdateActionable method since the endTo value
+    //here is not required to be validated
+    //this will update the actionable's endTo in the databse
+    updateActionable(currentActionableEndTo);
 
     //clear the interval of the actionable
     clearInterval(timerIntervalRef);
@@ -498,7 +505,6 @@ function validatorFunction() {
 
 //sends a new actionable to the DB using fetchAPI, when resolved
 //it will give the passedActionable id (from the DB)
-//and then it will display the actionable under the current session container
 function addActionable(passedActionable) {
     fetch("/add-actionable/", {
         method: "POST",
@@ -508,15 +514,14 @@ function addActionable(passedActionable) {
         },
         body: JSON.stringify({ "currentActionableHolder": passedActionable })
     })
-        .then(response => response.json())
-        .then(data => {
-            addFadingMessage(data.message);
-            passedActionable.pk = data["pk"];//set the id
-            displayActionable(passedActionable, document.querySelector(".singleSessionActionablesContainer"), 2);
-        })
-        .catch(error => {
-            addFadingMessage(error);
-        });
+    .then(response => response.json())
+    .then(data => {
+        addFadingMessage(data.message);
+        passedActionable.pk = data["pk"];//set the id
+    })
+    .catch(error => {
+        addFadingMessage(error);
+    });
 }
     
 

@@ -23,97 +23,95 @@ function getNewCurrentActionable() {
         detail: "",
         actionableName: null,
         actionableColor: null,
+        pk: -1,
     }
 }
 
-//handles the closing/refresh of the webpage by storing persistant data in local storage
-//on closing
-window.addEventListener("unload", () => {
-    if (currentSessionHolder.activeSession) {//if there is an active session
-        localStorage.setItem("previouslySelectedSectionID", getSectionIdThroughParent(currentSessionHolder.previouslySelectedSection));
-        currentActionableHolder.detail = document.querySelector("#currentActionableDiv .singleActionableDetails").value;
-        localStorage.setItem("currentSessionData", JSON.stringify(currentSessionHolder));
-        localStorage.setItem("currentActionable", JSON.stringify(currentActionableHolder));
-    }
-}, false);
 
 //on opening the page
-//attempts to load any data in the localStroage
+//attempts to load any data from the DB
 //if available it will display them
 //Also responsible for handling the archived sessions and displaying them
 window.addEventListener("load", () => {
-    currentSessionHolder = JSON.parse(localStorage.getItem("currentSessionData"));
-    if (currentSessionHolder) {//if there was an active session
-        //set the selected section
-        const previouslySelectedSectionID = localStorage.getItem("previouslySelectedSectionID");
-        currentSessionHolder.previouslySelectedSection = document.querySelector("#" + escapePeriodWithBackslashes(previouslySelectedSectionID) + " span");
+    //get current archived session from the html JSON
+    const currentSessionDB = JSON.parse(document.getElementById('currentSessionDB').textContent);
+    //if the length is not 0, there is a current session form the DB
+    if (currentSessionDB.length !== 0) {
+        //get the data from the json
+        currentSessionDBValues = JSON.parse(currentSessionDB[0])[0];
+        currentSessionDBActionables = JSON.parse(currentSessionDB[1]);
+
+        //currentSessionDB to currentSessionHolder
+        currentSessionHolder = getNewCurrentSessionData();
+        currentSessionHolder.previouslySelectedSection = sectionedLayerIDToSectionElement(currentSessionDBActionables[0].currentSection.sectionedLayer);
+        currentSessionHolder.startFrom = currentSessionDBValues["pk"];
+        currentSessionHolder.activeSession = true;
+        currentSessionHolder.totalTimeHolder = currentSessionDBActionables[0].startFrom - currentSessionDBActionables[currentSessionDBActionables.length - 1].startFrom;
+
+        //current actionable db to the currentActionableHolder
+        currentActionableHolder = getNewCurrentActionable();
+        currentActionableHolder.startFrom = currentSessionDBActionables[0].startFrom;
+        currentActionableHolder.currentSection = currentSessionDBActionables[0].currentSection.sectionedLayer;
+        currentActionableHolder.currentSession = currentSessionDBActionables[0].currentSession;
+        currentActionableHolder.detail = currentSessionDBActionables[0].detail;
+        currentActionableHolder.actionableName= currentSessionDBActionables[0].name.name;
+        currentActionableHolder.actionableColor = getActionableColor(currentActionableHolder.actionableName);
+        currentActionableHolder.pk = currentSessionDBActionables[0].id;
+
+        //set the session to be spanSelected
         currentSessionHolder.previouslySelectedSection.classList.add("spanSelected");
 
-        //start the actionable and session timer if there is an actionable that has started previously
-        currentActionableHolder = JSON.parse(localStorage.getItem("currentActionable"));
-        if (currentActionableHolder && currentActionableHolder.startFrom != 0) {
-            sessionSwitchFadedButtons();
+        //start session and actionable and display them
+        buttonEndingSession.classList.remove("sessionFadedButton");
+        startActionable();
+        //set the actionable button to be the selected one
+        document.querySelector("#actionable_" + escapeSpaceWithBackslashes(currentActionableHolder.actionableName)).classList.add("actionableButtonSelected");
 
-            startActionable();
-            //set the actionable button to be the selected one
-            document.querySelector("#actionable_" + escapeSpaceWithBackslashes(currentActionableHolder.actionableName)).classList.add("actionableButtonSelected");
-        }
-        else
-            currentActionableHolder = getNewCurrentActionable();
+        //list of the actionables of the current session (excluding the current actionable)
+        const actionablesContainer = document.getElementsByClassName("singleSessionActionablesContainer")[0];
+        displaySingleSession(actionablesContainer, currentSessionDBActionables.slice(1), 2)
     }
-    else {//else just start a new session data object and new actionable
+    else {//else there is no current session
         currentSessionHolder = getNewCurrentSessionData();
         currentActionableHolder = getNewCurrentActionable();
     }
 
-    //remove the items from the local storage
-    localStorage.removeItem("previouslySelectedSectionID");
-    localStorage.removeItem("currentSessionData");
-    localStorage.removeItem("currentActionable");
-
-
     //get all archived sessions from the html JSON
     const archivedSessionsDiv = document.getElementById("archivedSessions");
     const sessionsList = JSON.parse(document.getElementById('allSessions').textContent);
-
+    //iterate over each archived session
     for (const sessionActionables of sessionsList) {
         const session = JSON.parse(sessionActionables[0])[0];
-        if (!session["fields"]["archived"]) {//current (active) session
-            const actionablesContainer = document.getElementsByClassName("singleSessionActionablesContainer")[0];
-            displaySingleSession(actionablesContainer, sessionActionables[1], 2)
-        }
-        else {//for all archived sessions
-            //elements for a single session
-            const singleSessionDiv = document.createElement("div");
-            singleSessionDiv.className = "singleSessionDiv";
-            archivedSessionsDiv.appendChild(singleSessionDiv);
+        //for all archived sessions
+        //elements for a single session
+        const singleSessionDiv = document.createElement("div");
+        singleSessionDiv.className = "singleSessionDiv";
+        archivedSessionsDiv.appendChild(singleSessionDiv);
 
-            const title = document.createElement("h4");
-            const startFrom = session["pk"];
-            const endTo = session["fields"].endTo;
-            const totalTime = endTo - startFrom;
-            title.textContent += "Session of " + epochMilliSecondsToDate(startFrom) + ": Starting from " + epochMilliSecondsToTime(startFrom) + " to " + epochMilliSecondsToTime(endTo) + ", for a total of " + totalSecondsToTime(Math.floor(totalTime / 1000));
-            singleSessionDiv.appendChild(title);
+        const title = document.createElement("h4");
+        const startFrom = session["pk"];
+        const endTo = session["fields"].endTo;
+        const totalTime = endTo - startFrom;
+        title.textContent += "Session of " + epochMilliSecondsToDate(startFrom) + ": Starting from " + epochMilliSecondsToTime(startFrom) + " to " + epochMilliSecondsToTime(endTo) + ", for a total of " + totalSecondsToTime(Math.floor(totalTime / 1000));
+        singleSessionDiv.appendChild(title);
 
-            const barRef = document.createElement("div");
-            barRef.className = "barClass";
-            singleSessionDiv.appendChild(barRef);
+        const barRef = document.createElement("div");
+        barRef.className = "barClass";
+        singleSessionDiv.appendChild(barRef);
 
-            const actionablesContainer = document.createElement("div");
-            actionablesContainer.className = "singleSessionActionablesContainer";
-            singleSessionDiv.appendChild(actionablesContainer);
+        const actionablesContainer = document.createElement("div");
+        actionablesContainer.className = "singleSessionActionablesContainer";
+        singleSessionDiv.appendChild(actionablesContainer);
 
-            displaySingleSession(actionablesContainer, sessionActionables[1], 1)
-        }
+        displaySingleSession(actionablesContainer, JSON.parse(sessionActionables[1]), 1)
     }
 }, false);
 
 
 //function that displays a single session and its actionable as per
 //the arguments passed from the load event of the page
-function displaySingleSession(actionablesContainer, sessionActionablesList, caseValue) {
+function displaySingleSession(actionablesContainer, currentActionables, caseValue) {
     //the list of all actionables of a single session
-    const currentActionables = JSON.parse(sessionActionablesList)
     for (const currentActionable of currentActionables) {
         //initialize an actionable object
         actionable = {
@@ -203,7 +201,6 @@ function epochMilliSecondsToDate(epoch) {
     return `${day}/${month}/${year}`;
 }
 
-
 function getSectionIdThroughParent(span) {
     return span.parentElement.id;
 }
@@ -213,11 +210,17 @@ function getCurrentSectionedLayerID() {
     return x.parentNode.id.split("_")[1];
 }
 
+//pass a section id e.g. 1.1.1
+//returns the element's layer_name
 function sectionedLayerIDToSectionName(target) {
-    //return document.getElementById("sectionContainerInd_" + target).querySelector("span").textContent.trim();
     return target+"_"+document.getElementById("sectionContainerInd_" + target).querySelector("span").textContent.trim();
 }
 
+//pass a section id e.g. 1.1.1
+//returns the element
+function sectionedLayerIDToSectionElement(target) {
+    return document.getElementById("sectionContainerInd_" + target).querySelector("span");
+}
 
 function getListOfSections() {
     let t = Array.from(document.querySelectorAll(".sectionContainerInd"));
@@ -243,10 +246,7 @@ function getActionableColor(actionableName) {
 
 //for testing
 document.getElementById("totalButtonReset").addEventListener("click", (event) => {
-    localStorage.removeItem("previouslySelectedSectionID");
-    localStorage.removeItem("currentSessionData");
-    localStorage.removeItem("currentActionable");
-
+    localStorage.clear();
     currentSessionHolder = getNewCurrentSessionData();
     currentActionableHolder = getNewCurrentActionable();
     location.reload()
