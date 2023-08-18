@@ -1,3 +1,6 @@
+//to change the favicon when the actionable changes
+const faviconLink = document.querySelector("link[rel~='icon']");
+
 //reference to the timer
 let timerIntervalRef;
 
@@ -124,7 +127,8 @@ for (const actionableButton of actionableButtons) {
 
         //add it to the DB. this function will add the pk
         //from DB to the currentActionableHolder
-        addActionable(currentActionableHolder);
+        //await for it to assign the pk from DB
+        await addActionable(currentActionableHolder);
         //start the timer 
         startActionable();
     })
@@ -141,6 +145,8 @@ function startActionable() {
         const delta = Date.now() - currentActionableHolder.startFrom;
         currentActionableOutput.textContent = totalSecondsToTime(Math.floor(delta / 1000));
         totalSessionTimeOutput.textContent = totalSecondsToTime(Math.floor((delta + currentSessionHolder.totalTimeHolder) / 1000));
+        //change the tab title
+        document.title = currentActionableHolder.actionableName + " : " + currentActionableOutput.textContent;
     }, 1000);
 }
 
@@ -178,11 +184,15 @@ function displayCurrentActionable() {
     //remove the previous currentActionable display
     const parentObject = document.getElementById("currentActionableDiv");
     if (parentObject.querySelector(".singleActionableDiv"))
-        parentObject.querySelector(".singleActionableDiv").remove()
+        parentObject.querySelector(".singleActionableDiv").remove()     
+
+    //modify the favicon    
+    faviconLink.href = faviconLink.href.replace(/\/[^/]+\.ico$/, `/${currentActionableHolder.actionableColor}.ico`)
 
     //singleActionableDiv
     const singleActionableDiv = document.createElement("div");
     singleActionableDiv.className = "singleActionableDiv";
+    singleActionableDiv.id = currentActionableHolder.pk;
     parentObject.appendChild(singleActionableDiv);
 
     //display the color square, the actionable name, the section, and the details
@@ -252,8 +262,7 @@ function displayActionable_firstPart(passedActionable, parentObject, caseValue) 
         details.value = passedActionable.detail;
 
         //add an event listener
-        if (caseValue != 4)
-            details.addEventListener("change", preUpdateActionable, false);
+        details.addEventListener("change", preUpdateActionable, false);
     }
     else 
         details = document.createElement("span");
@@ -506,7 +515,7 @@ function validatorFunction() {
 //sends a new actionable to the DB using fetchAPI, when resolved
 //it will give the passedActionable id (from the DB)
 function addActionable(passedActionable) {
-    fetch("/add-actionable/", {
+    return fetch("/add-actionable/", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",

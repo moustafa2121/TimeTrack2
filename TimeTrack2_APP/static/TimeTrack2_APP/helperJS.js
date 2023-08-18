@@ -46,17 +46,18 @@ window.addEventListener("load", () => {
         currentSessionHolder.previouslySelectedSection = sectionedLayerIDToSectionElement(currentSessionDBActionables[0].currentSection.sectionedLayer);
         currentSessionHolder.startFrom = currentSessionDBValues["pk"];
         currentSessionHolder.activeSession = true;
-        currentSessionHolder.totalTimeHolder = currentSessionDBActionables[0].startFrom - currentSessionDBActionables[currentSessionDBActionables.length - 1].startFrom;
+        currentSessionHolder.totalTimeHolder = currentSessionDBActionables[currentSessionDBActionables.length-1].startFrom - currentSessionDBActionables[0].startFrom;
 
         //current actionable db to the currentActionableHolder
+        const currentActionableFromDB = currentSessionDBActionables[currentSessionDBActionables.length - 1]
         currentActionableHolder = getNewCurrentActionable();
-        currentActionableHolder.startFrom = currentSessionDBActionables[0].startFrom;
-        currentActionableHolder.currentSection = currentSessionDBActionables[0].currentSection.sectionedLayer;
-        currentActionableHolder.currentSession = currentSessionDBActionables[0].currentSession;
-        currentActionableHolder.detail = currentSessionDBActionables[0].detail;
-        currentActionableHolder.actionableName= currentSessionDBActionables[0].name.name;
+        currentActionableHolder.startFrom = currentActionableFromDB.startFrom;
+        currentActionableHolder.currentSection = currentActionableFromDB.currentSection.sectionedLayer;
+        currentActionableHolder.currentSession = currentActionableFromDB.currentSession;
+        currentActionableHolder.detail = currentActionableFromDB.detail;
+        currentActionableHolder.actionableName = currentActionableFromDB.name.name;
         currentActionableHolder.actionableColor = getActionableColor(currentActionableHolder.actionableName);
-        currentActionableHolder.pk = currentSessionDBActionables[0].id;
+        currentActionableHolder.pk = currentActionableFromDB.id;
 
         //set the session to be spanSelected
         currentSessionHolder.previouslySelectedSection.classList.add("spanSelected");
@@ -69,7 +70,7 @@ window.addEventListener("load", () => {
 
         //list of the actionables of the current session (excluding the current actionable)
         const actionablesContainer = document.getElementsByClassName("singleSessionActionablesContainer")[0];
-        displaySingleSession(actionablesContainer, currentSessionDBActionables.slice(1), 2)
+        displaySingleSession(actionablesContainer, currentSessionDBActionables.slice(0, currentSessionDBActionables.length-1), 2)
     }
     else {//else there is no current session
         currentSessionHolder = getNewCurrentSessionData();
@@ -92,6 +93,7 @@ window.addEventListener("load", () => {
         const startFrom = session["pk"];
         const endTo = session["fields"].endTo;
         const totalTime = endTo - startFrom;
+        title.style.display = "inline-block";
         title.textContent += "Session of " + epochMilliSecondsToDate(startFrom) + ": Starting from " + epochMilliSecondsToTime(startFrom) + " to " + epochMilliSecondsToTime(endTo) + ", for a total of " + totalSecondsToTime(Math.floor(totalTime / 1000));
         singleSessionDiv.appendChild(title);
 
@@ -99,9 +101,18 @@ window.addEventListener("load", () => {
         barRef.className = "barClass";
         singleSessionDiv.appendChild(barRef);
 
+        const minimizingArrow = document.createElement("button");
+        minimizingArrow.textContent = "^";
+        singleSessionDiv.appendChild(minimizingArrow);
+
         const actionablesContainer = document.createElement("div");
         actionablesContainer.className = "singleSessionActionablesContainer";
         singleSessionDiv.appendChild(actionablesContainer);
+
+        //event listener to hide the actionables
+        minimizingArrow.addEventListener("click", () => {
+            actionablesContainer.style.display = actionablesContainer.style.display === "none" ? "block" : "none";
+        });
 
         displaySingleSession(actionablesContainer, JSON.parse(sessionActionables[1]), 1)
     }

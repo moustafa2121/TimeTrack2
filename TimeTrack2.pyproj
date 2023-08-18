@@ -51,6 +51,13 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="requirements.txt" />
+    <Content Include="TimeTrack2_APP\static\favicons_folder\blue.ico" />
+    <Content Include="TimeTrack2_APP\static\favicons_folder\Darkgreen.ico" />
+    <Content Include="TimeTrack2_APP\static\favicons_folder\green.ico" />
+    <Content Include="TimeTrack2_APP\static\favicons_folder\pink.ico" />
+    <Content Include="TimeTrack2_APP\static\favicons_folder\red.ico" />
+    <Content Include="TimeTrack2_APP\static\favicons_folder\white.ico" />
+    <Content Include="TimeTrack2_APP\static\favicons_folder\yellow.ico" />
     <Content Include="TimeTrack2_APP\static\TimeTrack2_APP\helperJS.js" />
     <Content Include="TimeTrack2_APP\static\TimeTrack2_APP\leftNavContentScript.js" />
     <Content Include="TimeTrack2_APP\static\TimeTrack2_APP\mainBodyContentScript.js" />
@@ -63,6 +70,7 @@
     <Folder Include="TimeTrack2_APP\" />
     <Folder Include="TimeTrack2_APP\migrations\" />
     <Folder Include="TimeTrack2_APP\static\" />
+    <Folder Include="TimeTrack2_APP\static\favicons_folder\" />
     <Folder Include="TimeTrack2_APP\static\TimeTrack2_APP\" />
     <Folder Include="TimeTrack2_APP\templates\" />
     <Folder Include="TimeTrack2_APP\templates\TimeTrack2_APP\" />

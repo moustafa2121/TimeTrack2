@@ -37,13 +37,13 @@ def homepage(request):
         currentSessionTime = SessionTime.objects.filter(archived=False)
         if len(currentSessionTime) != 0:
             currentSessionTime = currentSessionTime[0]
-            actionables = [ActionableSerializer(actionable).to_representation(actionable) for actionable in Actionable.objects.filter(currentSession=currentSessionTime).order_by("-startFrom")]
+            actionables = [ActionableSerializer(actionable).to_representation(actionable) for actionable in Actionable.objects.filter(currentSession=currentSessionTime).order_by("startFrom")]
             actionables = json.dumps(actionables)
             sessionT = serializers.serialize("json", [currentSessionTime])
             currentSessionTimeAndActionables = [sessionT, actionables]
         else:
             currentSessionTimeAndActionables = []
-
+        
         #render
         return render(request, "TimeTrack2_APP/index.html", {"sectionForm":sectionForm, 
                                                              "sections":sections,
