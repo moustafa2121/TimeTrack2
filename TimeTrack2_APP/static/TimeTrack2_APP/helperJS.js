@@ -1,5 +1,6 @@
 //const secondsInDay = 86400;
-const secondsInDay = 3600;
+const secondsInDay = 86400/4;
+const displayBarMaxValue = secondsInDay/3600;
 
 //holds the current actionables and the current session data in local stroage
 //as persistant data to be used when refreshing/reloading the page
@@ -26,7 +27,14 @@ function getNewCurrentActionable() {
         pk: -1,
     }
 }
-
+//returns an object that holds the total time for 
+//each actionable type in one session
+function getNewTotalTimeActionablesHolder() {
+    let actionablesTimeHolder = {};
+    for (const actionableName of getListOfActionablesNames())
+        actionablesTimeHolder[actionableName] = "00:00:00";
+    return actionablesTimeHolder;
+}
 
 //on opening the page
 //attempts to load any data from the DB
@@ -97,13 +105,17 @@ window.addEventListener("load", () => {
         title.textContent += "Session of " + epochMilliSecondsToDate(startFrom) + ": Starting from " + epochMilliSecondsToTime(startFrom) + " to " + epochMilliSecondsToTime(endTo) + ", for a total of " + totalSecondsToTime(Math.floor(totalTime / 1000));
         singleSessionDiv.appendChild(title);
 
-        const barRef = document.createElement("div");
-        barRef.className = "barClass";
-        singleSessionDiv.appendChild(barRef);
+        //the parent bar of the subBars
+        const barRef = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        barRef.classList.add("barClass");
+        singleSessionDiv.appendChild(barRef)
 
         const minimizingArrow = document.createElement("button");
         minimizingArrow.textContent = "^";
         singleSessionDiv.appendChild(minimizingArrow);
+
+        //ruler for the bar
+        displayBarRuler(singleSessionDiv);
 
         const actionablesContainer = document.createElement("div");
         actionablesContainer.className = "singleSessionActionablesContainer";
@@ -141,6 +153,20 @@ function displaySingleSession(actionablesContainer, currentActionables, caseValu
     }
 }
 
+//passedMaxValue is used to dynamically change for the current session
+function displayBarRuler(singleSessionDiv, passedMaxValue=displayBarMaxValue) {
+    const barRuler = document.createElement("div");
+    const bar = singleSessionDiv.querySelector(".barClass");
+    barRuler.className = "barRuler";
+    singleSessionDiv.insertBefore(barRuler, bar.nextElementSibling);
+    for (let i = 0; i < 5; i++) {
+        const rulerLabel = document.createElement("div");
+        rulerLabel.className = "barRulerLabel";
+        const position = (i / 4) * 100;
+        rulerLabel.textContent = Math.round((position / 100) * passedMaxValue);
+        barRuler.appendChild(rulerLabel);
+    }
+}
 
 const messagesContainer = document.getElementById("messagesContainer");
 let messageContainerCounter = 0;
@@ -239,7 +265,7 @@ function getListOfSections() {
     return g;
 }
 
-function getListOfActionables() {
+function getListOfActionablesNames() {
     let t = Array.from(document.querySelectorAll(".actionableButton"));
     let g = t.map(target => target.textContent);
     return g;
@@ -356,6 +382,44 @@ function areDatesInSameDay(date1, date2) {
 }
 
 
+//takes two strings of the format "Total: 00:04:08"
+//returns their added value in hh:mm:ss format
+function addTimeStrings(timeString1, timeString2) {
+    const formattedTimeString1 = timeString1.replace(/^Total: /, "");
+    const formattedTimeString2 = timeString2.replace(/^Total: /, "");
+
+    const timeParts1 = formattedTimeString1.split(":");
+    const timeParts2 = formattedTimeString2.split(":");
+
+    const hours1 = parseInt(timeParts1[0]);
+    const minutes1 = parseInt(timeParts1[1]);
+    const seconds1 = parseInt(timeParts1[2]);
+    const hours2 = parseInt(timeParts2[0]);
+    const minutes2 = parseInt(timeParts2[1]);
+    const seconds2 = parseInt(timeParts2[2]);
+
+    const totalSeconds = (hours1 + hours2) * 3600 + (minutes1 + minutes2) * 60 + (seconds1 + seconds2);
+
+    const newHours = Math.floor(totalSeconds / 3600);
+    const newMinutes = Math.floor((totalSeconds % 3600) / 60);
+    const newSeconds = totalSeconds % 60;
+
+    return ("00" + newHours).slice(-2) + ":" +
+           ("00" + newMinutes).slice(-2) + ":" +
+            ("00" + newSeconds).slice(-2);
+}
+
+//takes an arry of the format "Total: 00:04:08"
+//adds all the values and returns the sum
+function addTimeStringsArray(timeArray) {
+    if (timeArray.length === 0)
+        return "00:00:00";
+    let totalSum = "00:00:00";
+    timeArray.forEach(timeString => {
+        totalSum = addTimeStrings(totalSum, timeString);
+    });
+    return totalSum;
+}
 
 
 

@@ -64,11 +64,12 @@ body {
     pointer-events: none; /* Disable click events */
 }
 
-/* session display*/
+/* session display */
 .singleSessionDiv{
     border:1px solid black;
     margin-top:15px;
 }
+/* the time bar of each session*/
 .barClass {
     border: 1px solid black;
     height: 17px;
@@ -77,12 +78,56 @@ body {
     margin-top:15px;
     padding: 0;
 }
-.subBarClass {
-    display: inline-block;
-    height: 15px;
-    margin: 0px;
-    padding: 0;
+.barRuler {
+    display: flex;
+    justify-content: space-between;
+    width: 85%;
+    padding: 0 5px;
 }
+.barRulerLabel {
+    font-size: 12px;
+}
+
+/* display the overlay on each subbar. Shows the total time of each actionable */
+#barOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100px;
+    height: 170px;
+    background-color: white;
+    z-index: 1;
+    display: none;
+}
+/* appears when hovering over a subbar*/
+#barOverlay.active {
+    display: block;
+}
+/* an element (actionable) of the overlay */
+#barOverlay .subElement{
+    font-size: 0.9em;
+}
+#barOverlay .title{
+    font-size: 0.7em;
+}
+/* place a dot/circle before each element*/
+#barOverlay .subElement::before{
+    content: "\2022";
+    font-weight: bold; 
+    font-size:1.5em;
+    display: inline-block; /* Needed to add space between the bullet and the text */
+    width: 1em; /* Also needed for space (tweak if needed) */
+    margin-left: 0.5em; /* Also needed for space (tweak if needed) */
+}
+/* color the dots before each item */
+#barOverlay .subElement[colorvalue="blue"]::before {color: blue;}
+#barOverlay .subElement[colorvalue="green"]::before {color: green;}
+#barOverlay .subElement[colorvalue="darkgreen"]::before {color: darkgreen;}
+#barOverlay .subElement[colorvalue="yellow"]::before {color: yellow;}
+#barOverlay .subElement[colorvalue="red"]::before {color: red;}
+#barOverlay .subElement[colorvalue="pink"]::before {color: pink;}
+
+
 .singleActionableDiv {
     border: 1px solid black;
     padding-top: 5px;
@@ -94,6 +139,8 @@ body {
     grid-template-columns: 20px 130px 130px 250px 1000px;
     align-items: center;
 }
+.singleActionableDiv.zoomEffect{ transform: scale(1.1); }
+
 .singleActionableDiv .singleActionableColor {
     width: 15px;
     height: 15px;

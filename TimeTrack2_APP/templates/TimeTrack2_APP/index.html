@@ -11,13 +11,6 @@
 <!-- responseMessage -->
 <div id="messagesContainer"></div>
 
-<!-- session -->
-<div id="currentSessionDiv">
-    <h4 style="float:left">Current Session</h4>
-    <a style="margin-left:70px" id="totalSessionTimeOutput"></a>
-    <button style="float:right" id="buttonEndSession" class="sessionFadedButton"> End Session</button>
-</div>
-
 <!--actionable buttons-->
 <div id="actionableButtonsDiv">
     <br />
@@ -29,17 +22,22 @@
 </div>
 <br />
 <br />
-
+<div id="barOverlay"></div>
 <!-- current session -->
 <div class="singleSessionDiv">
+    <div id="currentSessionDiv">
+        <h4 style="float:left">Current Session</h4>
+        <a style="margin-left:70px" id="totalSessionTimeOutput"></a>
+        <button style="float:right" id="buttonEndSession" class="sessionFadedButton"> End Session</button>
+    </div>
     <div id="currentActionableDiv">
         <h4 style="margin-left:5px; margin-bottom:10px">Current Actionable</h4>
     </div>
-    <div class="barClass"></div>
-    <div class="singleSessionActionablesContainer">
-    </div>
+    <svg class="barClass"></svg>
+    <div class="singleSessionActionablesContainer"></div>
 </div>
 <div id="archivedSessions"></div>
+
 
 {% endblock mainBodyContent%}
 

@@ -1,6 +1,9 @@
 //to change the favicon when the actionable changes
 const faviconLink = document.querySelector("link[rel~='icon']");
 
+//a hover item that appears when hovering over an subBar
+const barOverlay = document.getElementById("barOverlay");
+
 //reference to the timer
 let timerIntervalRef;
 
@@ -183,8 +186,11 @@ function endActionable() {
 function displayCurrentActionable() {
     //remove the previous currentActionable display
     const parentObject = document.getElementById("currentActionableDiv");
-    if (parentObject.querySelector(".singleActionableDiv"))
-        parentObject.querySelector(".singleActionableDiv").remove()     
+    if (parentObject.querySelector(".singleActionableDiv")) 
+        parentObject.querySelector(".singleActionableDiv").remove()
+
+    if (!parentObject.parentElement.querySelector(".barClass").firstChild)
+        displayBarRuler(parentObject.parentElement);
 
     //modify the favicon    
     faviconLink.href = faviconLink.href.replace(/\/[^/]+\.ico$/, `/${currentActionableHolder.actionableColor}.ico`)
@@ -227,7 +233,7 @@ function displayActionable_firstPart(passedActionable, parentObject, caseValue) 
     //the actionable name and section can be changed
     if (caseValue == 2 || caseValue == 3) {//a selectable
         //populate the actionable name
-        initializeSelect("singleActionableSelect", parentObject, getListOfActionables(),
+        initializeSelect("singleActionableSelect", parentObject, getListOfActionablesNames(),
                         passedActionable.actionableName, "name", validatorFunction);
         //populate the section
         initializeSelect("singleSectionSelect", parentObject, getListOfSections(),
@@ -313,7 +319,7 @@ function displayActionable(passedActionable, parentObject, caseValue) {
 
     //total time display
     const totalTime = document.createElement("span");
-    totalTime.textContent = " Total: " + totalSecondsToTime(Math.floor((passedActionable.endTo - passedActionable.startFrom) / 1000));
+    totalTime.textContent = "Total: " + totalSecondsToTime(Math.floor((passedActionable.endTo - passedActionable.startFrom) / 1000));
     timeSpan.appendChild(totalTime);
 
     //if the actionable is not part of an archived session
@@ -335,17 +341,93 @@ function displayActionable(passedActionable, parentObject, caseValue) {
 }
 
 //displays the subBar of the actionable on the progress bar of the session
+//also sets up the hovering effect on the subBar
 //the divider is currently just for testing
-function displayBar(barRef, passedActionable, divider=secondsInDay) {
-    const subBar = document.createElement("span");
-    subBar.className = "subBarClass"
-    subBar.style.backgroundColor = passedActionable.actionableColor;
+function displayBar(barRef, passedActionable, divider = secondsInDay) {
     const currentSecondsAsPercentage = Math.ceil((passedActionable.endTo - passedActionable.startFrom) / 1000) * 100;
-    const width = (currentSecondsAsPercentage / divider) + "%";
-    subBar.style.width = width;
-    barRef.appendChild(subBar);
-}
+    const width = (currentSecondsAsPercentage / divider);
 
+    //subBar element
+    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    rect.setAttribute("width", `${width}%`);
+    rect.setAttribute("height", "16px");
+    rect.setAttribute("style", `fill:${passedActionable.actionableColor}`);
+    rect.classList.add("subBarClass");
+
+    //set the starting point from the last sibling
+    const barRefLastChild = Array.from(barRef.querySelectorAll(".subBarClass")).at(-1);
+    if (barRefLastChild) {
+        const w1 = parseFloat(barRefLastChild.getAttribute('x'));
+        const w2 = parseFloat(barRefLastChild.getAttribute('width'));
+        const startingX = w1 + w2;
+        rect.setAttribute("x", startingX + "%");
+    }
+    else
+        rect.setAttribute("x", 0);
+    barRef.appendChild(rect);
+
+    //the parent container of a single session
+    const parentSessionsContainer = rect.closest(".singleSessionDiv").querySelector(".singleSessionActionablesContainer");
+
+    //the hover effect
+    rect.addEventListener("mouseenter", (event) => {
+        rect.setAttribute("style", `fill: ${passedActionable.actionableColor}; stroke-width:1; stroke:rgb(0,0,0)`);
+        const x = event.clientX;
+        const y = rect.getBoundingClientRect();
+        barOverlay.style.left = `${x}px`;
+        barOverlay.style.top = (y.top - 170)+"px";
+        barOverlay.classList.add('active');
+
+        //zoom in the actionable
+        parentSessionsContainer.querySelector(`[id="${passedActionable.pk}"`).classList.add("zoomEffect");
+
+        //remove the previous children
+        while (barOverlay.firstChild)
+            barOverlay.removeChild(barOverlay.firstChild);
+
+        //total time of each actionable
+        const totalTimeActionablesHolder = getNewTotalTimeActionablesHolder();
+
+        //check if the this session has a current actionable
+        const currentActionableCheck = parentSessionsContainer.parentElement.querySelector("#currentActionableDiv");
+        if (currentActionableCheck) {
+            const actionableName = currentActionableCheck.querySelector(".singleActionableName").textContent;
+            totalTimeActionablesHolder[actionableName] = addTimeStrings(totalTimeActionablesHolder[actionableName], document.querySelector("#currentActionableOutput").textContent);
+        }
+        //all the remaining actionables
+        for (const actionableDiv of parentSessionsContainer.querySelectorAll(".singleActionableDiv")) {
+            const actionableNameEle = actionableDiv.querySelector(":is(.singleActionableName, .singleActionableSelect)")
+            let actionableName = "";
+            if (actionableNameEle.tagName === "SPAN")
+                actionableName = actionableNameEle.textContent;
+            else 
+                actionableName = actionableNameEle.options[actionableNameEle.selectedIndex].text;
+
+            const actionableTotalTime = Array.from(actionableDiv.querySelector(".timeActionableDetail").querySelectorAll("span")).at(-1).textContent;
+            totalTimeActionablesHolder[actionableName] = addTimeStrings(totalTimeActionablesHolder[actionableName], actionableTotalTime);
+        }
+        const totalTextNode = document.createElement("div");
+        totalTextNode.classList.add("title");
+        totalTextNode.textContent = "Total per Actionable"
+        barOverlay.appendChild(totalTextNode);
+
+        //populate the barOverLay
+        for (const [key, value] of Object.entries(totalTimeActionablesHolder)) {
+            const actionableValue = document.createElement("div");
+            actionableValue.classList.add("subElement");
+            actionableValue.textContent = value;
+            actionableValue.setAttribute("colorvalue", getActionableColor(key))
+            barOverlay.appendChild(actionableValue);
+        }
+
+    });
+    //remove the zoom effect
+    rect.addEventListener("mouseleave", () => {
+        rect.setAttribute("style", `fill:${passedActionable.actionableColor}`);
+        barOverlay.classList.remove('active');
+        parentSessionsContainer.querySelector(".zoomEffect").classList.remove("zoomEffect");;
+    });
+}
 
 //updates the actionable details when they are changed
 //called only by the actionables of the current session (but not the currentActionable)
@@ -598,5 +680,5 @@ function setInvalidityMessage(element, theMessage, duration=1000) {
 //updates the total time of a given actionable (element)
 //start and end are epoch
 function updateTotalTime(element, start, end) {
-    element.textContent = " Total: " + totalSecondsToTime(Math.floor((end - start) / 1000));
+    element.textContent = "Total: " + totalSecondsToTime(Math.floor((end - start) / 1000));
 }
