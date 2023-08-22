@@ -51,7 +51,6 @@ def homepage(request):
                                                              "allSessions":recentSessionTimeAndActionables,
                                                              "currentSessionDB":currentSessionTimeAndActionables})
 
-
 def updateSession(request):
     if request.method == "POST":
         sessionJson = json.loads(request.body)["passedSession"]
@@ -140,5 +139,19 @@ def updateActionable(request):
         except Exception as e:
             print("updated actionable exception: ", e)
             return JsonResponse({'message': 'something went wrong when updating the actionable.'})  
+    elif request.method == 'GET':
+        return HttpResponseNotFound()
+
+
+def deleteActionable(request):
+    if request.method == 'POST':
+        try:
+            passedActionable = json.loads(request.body)
+            print(passedActionable)
+            Actionable.objects.filter(id=passedActionable["pk"]).delete()
+            return JsonResponse({'message': 'Actionable deleted successfully.'})
+        except Exception as e:
+            print("updated actionable exception: ", e)
+            return JsonResponse({'message': 'something went wrong when deleting the actionable.'})  
     elif request.method == 'GET':
         return HttpResponseNotFound()

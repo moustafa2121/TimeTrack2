@@ -314,7 +314,6 @@ function inputInRange(start, end, userInput) {
     //get time in hh:mm:ss
     const startTime = epochMilliSecondsToTime(start);
     const endTime = epochMilliSecondsToTime(end);
-    
 
     //if the start and end are in the same day, just make sure that 
     //user input  is between these two values
@@ -330,11 +329,11 @@ function inputInRange(start, end, userInput) {
     else {//if they are not the same day
         //check if the userInput is between the startTime and 12am
         //or it is between 12am and endTime
-        if (isTimeBetween_threeValues(startTime, "00:00:00", userInput)) {
+        if (isTimeBetween_threeValues(startTime, "23:59:59", userInput)) {
             //console.log("user input is between start and 12 am");
             return new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate(), ...userInput.split(":"));
         }
-        else if (isTimeBetween_threeValues("00:00:00", endTime, userInput)) {
+        else if (isTimeBetween_threeValues("00:00:01", endTime, userInput)) {
             //console.log("user input is between 12am and end");
             return new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate(), ...userInput.split(":"));
         }

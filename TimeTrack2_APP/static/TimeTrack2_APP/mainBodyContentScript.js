@@ -329,12 +329,61 @@ function displayActionable(passedActionable, parentObject, caseValue) {
         timeSpan.appendChild(actionableDeleteButton);
 
         //if there is a second child to the parent, then
-        //make sure only the most recent actionable is can be edited, actionable details can still be edited
-        if (parentObject.querySelectorAll(".singleActionableDiv")[1]) {
-            const currentSecondChild = parentObject.querySelectorAll(".singleActionableDiv")[1];
-            //disable the delete button for the non-most recent actionable
+        //make sure only the most recent actionable can be deleted
+        enableDisableDeleteButton(parentObject, false);
+
+        //add an event listener for the delete button
+        actionableDeleteButton.addEventListener("click", () => {
+            if (confirm("Are you sure you want to delete this actionable?")) {
+                //delete the object from the DB
+                fetch("/delete-actionable/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": document.querySelector('input[name="csrfmiddlewaretoken"]').value
+                    },
+                    body: JSON.stringify({ "pk": passedActionable.pk })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        //if sucessfully deleted
+                        addFadingMessage(data.message);
+
+                        //add the total epochs of this actionable to the current actionable
+                        const startFrom = timeSpan.querySelectorAll("input")[0].getAttribute("data-raw-value");
+                        const endTo = timeSpan.querySelectorAll("input")[1].getAttribute("data-raw-value");
+                        const totalEpochs = endTo - startFrom;
+                        currentActionableHolder.startFrom -= totalEpochs;
+
+                        //update the current actionable in the DB
+                        const constObjSend = {
+                            "pk": currentActionableHolder.pk,
+                            "startFrom": currentActionableHolder.startFrom,
+                        };
+                        updateActionable(null, constObjSend);
+
+                        //enable the button for the below actionable, if any
+                        enableDisableDeleteButton(parentObject, true);
+
+                        //remove the actionable from the page
+                        parentObject.querySelectorAll(".singleActionableDiv")[0].remove();
+                    })
+                    .catch(error => {
+                        addFadingMessage(error);
+                    });
+            }
+        });
+    }
+}
+
+//enables or diables the delete button of an actionable
+function enableDisableDeleteButton(parentObject, enable) {
+    const currentSecondChild = parentObject.querySelectorAll(".singleActionableDiv")[1];
+    if (currentSecondChild) {
+        if (enable)
+            currentSecondChild.querySelector("button").classList.remove("sessionFadedButton");
+        else
             currentSecondChild.querySelector("button").classList.add("sessionFadedButton");
-        }
     }
 }
 
@@ -545,19 +594,15 @@ function timeInputValidatorFunction(userInput) {
             }
         }
         else {//the previous sibing is the current (running) actionable
-            //end of the current actionable
+            //endTo of the current actionable
             const thePreviousActionableEndToValue = Date.now();
 
             //the start of this element
             const thisStartFrom = this.parentNode.querySelector("input[name='startFrom']").getAttribute("data-raw-value");
 
-            //change of this element's end to must be between this's startFrom and the 
+            //change of this element's endTo must be between this's startFrom and the 
             //current actionable's end to
             const evaluation = inputInRange(parseInt(thisStartFrom), parseInt(thePreviousActionableEndToValue), userInput);
-            //console.log(parseInt(thisStartFrom));
-            //console.log(parseInt(thePreviousActionableEndToValue));
-            //console.log(userInput);
-            //console.log(evaluation);
 
             //evaluate
             if (evaluation) {
@@ -572,7 +617,7 @@ function timeInputValidatorFunction(userInput) {
                 //update the current actionable in the DB
                 const constObjSend = {
                     "pk": currentActionableHolder.pk,
-                    "startFrom": evaluation.getTime(),
+                    "startFrom": currentActionableHolder.startFrom,
                 };
                 updateActionable(null, constObjSend);
 
