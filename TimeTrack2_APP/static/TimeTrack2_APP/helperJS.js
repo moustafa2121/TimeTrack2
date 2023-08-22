@@ -12,7 +12,6 @@ function getNewCurrentSessionData() {
         startFrom: 0,
         endTo: 0,
         activeSession: false,
-        totalTimeHolder: 0,
     }
 }
 function getNewCurrentActionable() {
@@ -54,7 +53,6 @@ window.addEventListener("load", () => {
         currentSessionHolder.previouslySelectedSection = sectionedLayerIDToSectionElement(currentSessionDBActionables[0].currentSection.sectionedLayer);
         currentSessionHolder.startFrom = currentSessionDBValues["pk"];
         currentSessionHolder.activeSession = true;
-        currentSessionHolder.totalTimeHolder = currentSessionDBActionables[currentSessionDBActionables.length-1].startFrom - currentSessionDBActionables[0].startFrom;
 
         //current actionable db to the currentActionableHolder
         const currentActionableFromDB = currentSessionDBActionables[currentSessionDBActionables.length - 1]

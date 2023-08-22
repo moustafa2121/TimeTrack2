@@ -61,7 +61,6 @@ body {
 }
 .actionableButtonSelected {
     border: solid cyan 5px;
-    pointer-events: none; /* Disable click events */
 }
 
 /* session display */

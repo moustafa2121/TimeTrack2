@@ -106,7 +106,7 @@ function endSession() {
 for (const actionableButton of actionableButtons) {
     actionableButton.addEventListener("click", async function () {
         if (!currentSessionHolder.previouslySelectedSection) {//select a section
-            alert("You need to select the current Section");
+            alert("You need to select a section");
             return;
         }
 
@@ -147,7 +147,7 @@ function startActionable() {
     timerIntervalRef = setInterval(() => {
         const delta = Date.now() - currentActionableHolder.startFrom;
         currentActionableOutput.textContent = totalSecondsToTime(Math.floor(delta / 1000));
-        totalSessionTimeOutput.textContent = totalSecondsToTime(Math.floor((delta + currentSessionHolder.totalTimeHolder) / 1000));
+        totalSessionTimeOutput.textContent = totalSecondsToTime(Math.floor((Date.now() - currentSessionHolder.startFrom) / 1000));
         //change the tab title
         document.title = currentActionableHolder.actionableName + " : " + currentActionableOutput.textContent;
     }, 1000);
@@ -162,9 +162,6 @@ function endActionable() {
     //update the current actionable with the final data
     currentActionableHolder.endTo = Date.now();
     currentActionableHolder.detail = document.querySelector("#currentActionableDiv .singleActionableDetails").value;
-
-    //add the total time of the actionable to the totam time of the session
-    currentSessionHolder.totalTimeHolder += (currentActionableHolder.endTo - currentActionableHolder.startFrom);
 
     //display the current actionable in the current session actionables
     displayActionable(currentActionableHolder, document.querySelector(".singleSessionActionablesContainer"), 2);
@@ -189,6 +186,7 @@ function displayCurrentActionable() {
     if (parentObject.querySelector(".singleActionableDiv")) 
         parentObject.querySelector(".singleActionableDiv").remove()
 
+    //display the bar ruler if it is not already displayed
     if (!parentObject.parentElement.querySelector(".barClass").firstChild)
         displayBarRuler(parentObject.parentElement);
 
@@ -429,7 +427,9 @@ function displayBar(barRef, passedActionable, divider = secondsInDay) {
     });
 }
 
-//updates the actionable details when they are changed
+//pre-processing for the function updateActionable
+//responsible for validating input and changing values in the field
+//if it is validated by other functions.
 //called only by the actionables of the current session (but not the currentActionable)
 function preUpdateActionable(event) {
     const currentTarget = event.currentTarget;
@@ -460,14 +460,21 @@ function preUpdateActionable(event) {
 }
 
 //called on when the actionable is ready to be updated in the DB
-function updateActionable(target) {
-    const constObjSend = {};
-    constObjSend["pk"] = target.closest(".singleActionableDiv").id;
-    if (target.name == "startFrom" || target.name == "endTo")
-        constObjSend[target.name] = target.getAttribute("data-raw-value");
-    else
-        constObjSend[target.name] = target.value;
-
+//in all cases the 'target' passed is the field that is being changed of the actionable
+//however, only in the case of the current actionable when changing the endTo values
+//of the actioanble below it, we opt instead to send target=null and populate the
+//constObjSend from the calling function
+function updateActionable(target, constObjSend={}) {
+    //if the target is not null then use it to get the values to send
+    //otherwise the constObjSend is already populated by the calling function
+    if (target) {
+        constObjSend["pk"] = target.closest(".singleActionableDiv").id;
+        if (target.name == "startFrom" || target.name == "endTo")
+            constObjSend[target.name] = target.getAttribute("data-raw-value");
+        else
+            constObjSend[target.name] = target.value;
+    }
+    //send to the DB
     fetch("/update-actionable/", {
         method: "POST",
         headers: {
@@ -495,7 +502,7 @@ function updateActionable(target) {
 //2a- endTo = sibling.startFrom < sibling.endTo
 //2b- if the previous actionable is the current actionable, dont change
 //input value is in "hh:mm:ss" format
-function timeValidatorFunction(userInput) {
+function timeInputValidatorFunction(userInput) {
     //check if the input is of the pattern hh:mm:ss
     if (!this.checkValidity()) {//if invalid
         setInvalidityMessage(this, "Input must be of hh:mm:ss format");
@@ -533,15 +540,48 @@ function timeValidatorFunction(userInput) {
                 return true;
             }
             else {
-                setInvalidityMessage(this, "input must be between the start of the previous actionable and the end of this actionable")
+                setInvalidityMessage(this, "input must be between the end of the previous actionable and the start of this actionable")
                 return false;
             }
         }
-        else {
-            //no previous sibling, means this is the most recent
-            //actionable and the one above it is the current actionable
-            //thus we cannot edit the endTo value
-            setInvalidityMessage(this, "cannot modify the end time of this actionable if there is no previous actionable", 1500);
+        else {//the previous sibing is the current (running) actionable
+            //end of the current actionable
+            const thePreviousActionableEndToValue = Date.now();
+
+            //the start of this element
+            const thisStartFrom = this.parentNode.querySelector("input[name='startFrom']").getAttribute("data-raw-value");
+
+            //change of this element's end to must be between this's startFrom and the 
+            //current actionable's end to
+            const evaluation = inputInRange(parseInt(thisStartFrom), parseInt(thePreviousActionableEndToValue), userInput);
+            //console.log(parseInt(thisStartFrom));
+            //console.log(parseInt(thePreviousActionableEndToValue));
+            //console.log(userInput);
+            //console.log(evaluation);
+
+            //evaluate
+            if (evaluation) {
+                //change the output of this actionable
+                this.setAttribute("data-raw-value", evaluation.getTime());
+                const totalTime = this.parentNode.querySelector("span");
+                updateTotalTime(totalTime, parseInt(thisStartFrom), evaluation.getTime());
+
+                //change the output/startFrom of the current actionable
+                currentActionableHolder.startFrom = evaluation.getTime();
+
+                //update the current actionable in the DB
+                const constObjSend = {
+                    "pk": currentActionableHolder.pk,
+                    "startFrom": evaluation.getTime(),
+                };
+                updateActionable(null, constObjSend);
+
+                return true;
+            }
+            else {
+                setInvalidityMessage(this, "input must be between the end of the previous actionable and the start of this actionable")
+                return false;
+            }
             return false;
         }
     }
@@ -582,7 +622,7 @@ function timeValidatorFunction(userInput) {
         }
         else {
             //no actionables below to modify
-            setInvalidityMessage(this, "cannot modify the start time of this actionable if it is the first one in the actionable", 1500);
+            setInvalidityMessage(this, "cannot modify the start time of this actionable if it is the first one in the actionables", 1500);
             return false;
         }
     }
@@ -655,7 +695,7 @@ function initializeActionableTimeField(parentObject, fieldName, value, caseValue
         //listener
         timeSpanField.oldValue = timeSpanField.value;
         timeSpanField.addEventListener("change", preUpdateActionable, false);
-        timeSpanField.validator = timeValidatorFunction.bind(timeSpanField);
+        timeSpanField.validator = timeInputValidatorFunction.bind(timeSpanField);
     }
     else {
         timeSpanField = document.createElement("span");
