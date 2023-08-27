@@ -28,14 +28,6 @@ const currentlySelectedSection = (function () {
 
 //called on when the page loads
 function loadLeftNavPanel() {
-    //get the sections data from JSON from the HTML
-    const data = JSON.parse(document.getElementById('sectionsJson').textContent);
-    const sectionsList = JSON.parse(data);
-
-    //display each section
-    for (const section of sectionsList)
-        displaySection(section);
-
     //add an addSectionButton that can be used to add sections of layer 1
     const addSectionButton_layer1 = document.createElement("button");
     addSectionButton_layer1.className = "addSectionButton";
@@ -44,6 +36,15 @@ function loadLeftNavPanel() {
     addSectionButton_layer1.title = "Add a subsection"
     sectionsDiv().appendChild(addSectionButton_layer1);
     addSectionButtonFunction(addSectionButton_layer1, sectionsDiv().querySelector("h3"))
+
+    //get the sections data from JSON from the HTML
+    const data = JSON.parse(document.getElementById('sectionsJson').textContent);
+    const sectionsList = JSON.parse(data);
+
+    //display each section
+    for (const section of sectionsList)
+        displaySection(section);
+
 }
 
 //display each section
@@ -152,7 +153,7 @@ function saveSection(event) {
 
         //reset the form
         form.elements["name"].value = "";
-        document.querySelector("[id='addSectionForm']").style.display = "none";
+        document.getElementById("addSectionForm").style.display = "none";
     })
     .catch(error => {
         addFadingMessage(error.message); // Display the error message

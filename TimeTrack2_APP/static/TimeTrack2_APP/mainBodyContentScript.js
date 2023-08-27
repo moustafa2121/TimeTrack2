@@ -116,7 +116,7 @@ for (const actionableButton of actionableButtons) {
         currentActionableHolder.startFrom = Date.now();
         currentActionableHolder.actionableName = actionableButton.textContent;
         currentActionableHolder.actionableColor = actionableButton.style.backgroundColor;
-        currentActionableHolder.currentSection = getCurrentSectionLayerID();
+        currentActionableHolder.currentSection = currentlySelectedSection().sectionLayer;
         currentActionableHolder.currentSession = currentSessionHolder().startFrom;
 
         //add it to the DB. this function will add the pk
@@ -367,7 +367,6 @@ function displayActionable(passedActionable, parentObject, caseValue) {
     }
 }
 
-
 //displays the subBar of the actionable on the progress bar of the session
 //also sets up the hovering effect on the subBar
 //the divider is currently just for testing
@@ -522,144 +521,6 @@ function updateActionable(target, constObjSend={}) {
         });
 }
 
-//used by the time input field of actionables
-//first: check if the input is of pattern hh:mm:ss
-//second: check if the input is between the proper range
-//1- if it is startFrom, get next actionable sibling
-//1a- startFrom = sibling.endTo > sibling.startFrom
-//1b- if no next actionable sibling, dont change
-//2- if it is endTo, get previous actionable sibling
-//2a- endTo = sibling.startFrom < sibling.endTo
-//2b- if the previous actionable is the current actionable, dont change
-//input value is in "hh:mm:ss" format
-function timeInputValidatorFunction(userInput) {
-    //check if the input is of the pattern hh:mm:ss
-    if (!this.checkValidity()) {//if invalid
-        setInvalidityMessage(this, "Input must be of hh:mm:ss format");
-        return false;
-    }
-    //check the input range
-    if (this.name === "endTo") {
-        //previous sibling is the one above it (i.e. the more recent one)
-        const thePreviousActionable = this.parentNode.parentNode.previousElementSibling;
-        if (thePreviousActionable) {
-            //start and end of the previous actionable
-            const thePreviousActionableStartFrom = thePreviousActionable.querySelector("input[name='startFrom']"); 
-            const thePreviousActionableEndTo = thePreviousActionable.querySelector("input[name='endTo']"); 
-
-            //the range that the input value must obey
-            const thePreviousActionableEndToValue = thePreviousActionableEndTo.getAttribute("data-raw-value");
-            const thisStartFrom = this.parentNode.querySelector("input[name='startFrom']").getAttribute("data-raw-value");
-
-            //evaluate
-            const evaluation = inputInRange(parseInt(thisStartFrom), parseInt(thePreviousActionableEndToValue), userInput);
-            if (evaluation) {
-                this.setAttribute("data-raw-value", evaluation.getTime());
-                thePreviousActionableStartFrom.setAttribute("data-raw-value", evaluation.getTime());
-                thePreviousActionableStartFrom.value = userInput;
-
-                //update the total time
-                const totalTime = this.parentNode.querySelector("span");
-                updateTotalTime(totalTime, parseInt(thisStartFrom), evaluation.getTime());
-                const previousElementTotalTime = thePreviousActionable.querySelector(".timeActionableDetail span");
-                updateTotalTime(previousElementTotalTime, evaluation.getTime(), parseInt(thePreviousActionableEndToValue));
-
-                //update the second actionable in the DB
-                updateActionable(thePreviousActionableStartFrom);
-
-                return true;
-            }
-            else {
-                setInvalidityMessage(this, "input must be between the end of the previous actionable and the start of this actionable")
-                return false;
-            }
-        }
-        else {//the previous sibing is the current (running) actionable
-            //endTo of the current actionable
-            const thePreviousActionableEndToValue = Date.now();
-
-            //the start of this element
-            const thisStartFrom = this.parentNode.querySelector("input[name='startFrom']").getAttribute("data-raw-value");
-
-            //change of this element's endTo must be between this's startFrom and the 
-            //current actionable's end to
-            const evaluation = inputInRange(parseInt(thisStartFrom), parseInt(thePreviousActionableEndToValue), userInput);
-
-            //evaluate
-            if (evaluation) {
-                //change the output of this actionable
-                this.setAttribute("data-raw-value", evaluation.getTime());
-                const totalTime = this.parentNode.querySelector("span");
-                updateTotalTime(totalTime, parseInt(thisStartFrom), evaluation.getTime());
-
-                //change the output/startFrom of the current actionable
-                currentActionableHolder.startFrom = evaluation.getTime();
-
-                //update the current actionable in the DB
-                const constObjSend = {
-                    "pk": currentActionableHolder.pk,
-                    "startFrom": currentActionableHolder.startFrom,
-                };
-                updateActionable(null, constObjSend);
-
-                return true;
-            }
-            else {
-                setInvalidityMessage(this, "input must be between the end of the previous actionable and the start of this actionable")
-                return false;
-            }
-            return false;
-        }
-    }
-    else if (this.name === "startFrom") {
-        //the next sibling is the actionable below it (i.e. the less recent one)
-        const theNextActionable = this.parentNode.parentNode.nextElementSibling;
-        if (theNextActionable) {
-            //start and end of the next actionable
-            const theNextActionableEndTo = theNextActionable.querySelector("input[name='endTo']");
-            const theNextActionableStartFrom = theNextActionable.querySelector("input[name='startFrom']");
-
-            //the range that the input value must obey
-            const theNextActionableStartFromValue = theNextActionableStartFrom.getAttribute("data-raw-value");
-            const thisEndTo = this.parentNode.querySelector("input[name='endTo']").getAttribute("data-raw-value");
-
-            //evaluate
-            const evaluation = inputInRange(parseInt(theNextActionableStartFromValue), parseInt(thisEndTo), userInput);
-            if (evaluation) {
-                this.setAttribute("data-raw-value", evaluation.getTime());
-                theNextActionableEndTo.setAttribute("data-raw-value", evaluation.getTime());
-                theNextActionableEndTo.value = userInput;
-
-                //update the total time
-                const totalTime = this.parentNode.querySelector("span");
-                updateTotalTime(totalTime, evaluation.getTime(), parseInt(thisEndTo));
-                const nextElementTotalTime = theNextActionable.querySelector(".timeActionableDetail span");
-                updateTotalTime(nextElementTotalTime, parseInt(theNextActionableStartFromValue), evaluation.getTime());
-
-                //update the second actionable in the DB
-                updateActionable(theNextActionableEndTo);
-
-                return true;
-            }
-            else {
-                setInvalidityMessage(this, "input must be between the start of the previous actionable and the end of this actionable")
-                return false;
-            }
-        }
-        else {
-            //no actionables below to modify
-            setInvalidityMessage(this, "cannot modify the start time of this actionable if it is the first one in the actionables", 1500);
-            return false;
-        }
-    }
-    return false;
-}
-
-//used by actionable fields to validate their input
-function validatorFunction() {
-    return true;
-}
-
 //sends a new actionable to the DB using fetchAPI, when resolved
 //it will give the passedActionable id (from the DB)
 function addActionable(passedActionable) {
@@ -680,7 +541,6 @@ function addActionable(passedActionable) {
         addFadingMessage(error);
     });
 }
-    
 
 //inititalize a select, used to set up a modifiable actionable name and its section in
 //the actionable list of the current session
@@ -731,20 +591,4 @@ function initializeActionableTimeField(parentObject, fieldName, value, caseValue
     timeSpanField.name = fieldName;
     timeSpanField.dataset.rawValue = value;
     parentObject.appendChild(timeSpanField);
-}
-
-//takes an element and message
-//sets a message that will timeout after duration
-function setInvalidityMessage(element, theMessage, duration=1000) {
-    element.setCustomValidity(theMessage);
-    element.reportValidity();
-    setTimeout(() => {
-        element.setCustomValidity("");
-    }, duration);
-}
-
-//updates the total time of a given actionable (element)
-//start and end are epoch
-function updateTotalTime(element, start, end) {
-    element.textContent = "Total: " + totalSecondsToTime(Math.floor((end - start) / 1000));
 }

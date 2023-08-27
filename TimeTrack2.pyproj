@@ -58,12 +58,14 @@
     <Content Include="TimeTrack2_APP\static\favicons_folder\red.ico" />
     <Content Include="TimeTrack2_APP\static\favicons_folder\white.ico" />
     <Content Include="TimeTrack2_APP\static\favicons_folder\yellow.ico" />
-    <Content Include="TimeTrack2_APP\static\TimeTrack2_APP\helperJS.js" />
-    <Content Include="TimeTrack2_APP\static\TimeTrack2_APP\holderClasses.js" />
+    <Content Include="TimeTrack2_APP\static\TimeTrack2_APP\auxJS\helperJS.js" />
+    <Content Include="TimeTrack2_APP\static\TimeTrack2_APP\auxJS\holderClasses.js" />
     <Content Include="TimeTrack2_APP\static\TimeTrack2_APP\leftNavContentScript.js" />
     <Content Include="TimeTrack2_APP\static\TimeTrack2_APP\mainBodyContentScript.js" />
-    <Content Include="TimeTrack2_APP\static\TimeTrack2_APP\style.css" />
-    <Content Include="TimeTrack2_APP\static\TimeTrack2_APP\testFiles.js" />
+    <Content Include="TimeTrack2_APP\static\TimeTrack2_APP\auxJS\onLoadingThePage.js" />
+    <Content Include="TimeTrack2_APP\static\TimeTrack2_APP\styleSheets\style.css" />
+    <Content Include="TimeTrack2_APP\static\TimeTrack2_APP\auxJS\testFiles.js" />
+    <Content Include="TimeTrack2_APP\static\TimeTrack2_APP\auxJS\validatorsFunctions.js" />
     <Content Include="TimeTrack2_APP\templates\base.html" />
     <Content Include="TimeTrack2_APP\templates\TimeTrack2_APP\index.html" />
   </ItemGroup>
@@ -74,6 +76,8 @@
     <Folder Include="TimeTrack2_APP\static\" />
     <Folder Include="TimeTrack2_APP\static\favicons_folder\" />
     <Folder Include="TimeTrack2_APP\static\TimeTrack2_APP\" />
+    <Folder Include="TimeTrack2_APP\static\TimeTrack2_APP\auxJS\" />
+    <Folder Include="TimeTrack2_APP\static\TimeTrack2_APP\styleSheets\" />
     <Folder Include="TimeTrack2_APP\templates\" />
     <Folder Include="TimeTrack2_APP\templates\TimeTrack2_APP\" />
   </ItemGroup>
