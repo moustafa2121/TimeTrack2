@@ -1,87 +1,14 @@
-//const secondsInDay = 86400;
-const secondsInDay = 86400/4;
-const displayBarMaxValue = secondsInDay/3600;
-
-//holds the current actionables and the current session data in local stroage
-//as persistant data to be used when refreshing/reloading the page
-
-let currentActionableHolder;
-
-function getNewCurrentActionable() {
-    return {
-        startFrom: 0,
-        endTo: 0,
-        currentSection: null,
-        currentSession: null,
-        detail: "",
-        actionableName: null,
-        actionableColor: null,
-        pk: -1,
-    }
-}
-
-//let currentSessionHolder;
-//function getNewCurrentSessionData() {
-//    return {
-//        previouslySelectedSection: null,
-//        startFrom: 0,
-//        endTo: 0,
-//        activeSession: false,
-//    }
-//}
-
-class CurrentSessionHolder {
-    constructor() {
-        this._previouslySelectedSection = null;
-    }
-    //setters and getters for the endTo
-    get endTo() {
-        return this._endTo;
-    }
-    set endTo(value) {
-        if (this.isActiveSession())
-            this._endTo = value;
-        else
-            console.log("session hasn't started yet, cannot end");
-    }
-    //setters and getters for the startFrom
-    get startFrom() {
-        return this._startFrom;
-    }
-    set startFrom(value) {
-        if (!this.isActiveSession() && this._endTo !== undefined) 
-            console.log("session has already ended, start a new one");
-        else
-            this._startFrom = value;
-    }
-    //returns if the session is currently active or not
-    isActiveSession() {
-        const evalu = XOR(this._startFrom, this._endTo);
-        return (evalu !== undefined) ? evalu : false;
-    }
-    //setters and getters for previouslySelectedSection 
-    set previouslySelectedSection(value) {
-        this._previouslySelectedSection = value;
-    }
-    get previouslySelectedSection() {
-        return this._previouslySelectedSection;
-    }
-    toJSON() {
+//constants
+const constantValues = (function () {
+    //const secondsInDay = 86400;
+    const secondsInDay = 86400 / 4;
+    const displayBarMaxValue = secondsInDay / 3600;
+    return function () {
         return {
-            startFrom: this._startFrom,
-            endTo: (this._endTo === undefined) ? 0 : this._endTo,
+            secondsInDay: secondsInDay,
+            displayBarMaxValue: displayBarMaxValue,
         }
     }
-}
-
-//closure for the session holder class
-currentSessionHolder = (function () {
-    let tmp = new CurrentSessionHolder();
-    return function (newSession = false) {
-        if (newSession && !tmp.isActiveSession())
-            tmp = new CurrentSessionHolder();
-        return tmp;
-    };
 })();
 
 //on opening the page
@@ -89,6 +16,9 @@ currentSessionHolder = (function () {
 //if available it will display them
 //Also responsible for handling the archived sessions and displaying them
 window.addEventListener("load", () => {
+    //load all the sections in the left panel
+    loadLeftNavPanel();
+
     //start a new session and actionable holders
     currentSessionHolder(true);
     currentActionableHolder = getNewCurrentActionable();
@@ -101,9 +31,10 @@ window.addEventListener("load", () => {
         currentSessionDBActionables = JSON.parse(currentSessionDB[1]);
 
         //currentSessionDB to currentSessionHolder
-        currentSessionHolder().previouslySelectedSection = sectionedLayerIDToSectionElement(currentSessionDBActionables[currentSessionDBActionables.length - 1].currentSection.sectionedLayer);
         currentSessionHolder().startFrom = currentSessionDBValues["pk"];
-        currentSessionHolder().previouslySelectedSection.classList.add("spanSelected");
+
+        //set the current section
+        currentlySelectedSection(currentSessionDBActionables[currentSessionDBActionables.length - 1].currentSection.sectionedLayer);
 
         //current actionable db to the currentActionableHolder
         const currentActionableFromDB = currentSessionDBActionables[currentSessionDBActionables.length - 1]
@@ -197,7 +128,7 @@ function displaySingleSession(actionablesContainer, currentActionables, caseValu
 }
 
 //passedMaxValue is used to dynamically change for the current session
-function displayBarRuler(singleSessionDiv, passedMaxValue=displayBarMaxValue) {
+function displayBarRuler(singleSessionDiv, passedMaxValue=constantValues().displayBarMaxValue) {
     const barRuler = document.createElement("div");
     const bar = singleSessionDiv.querySelector(".barClass");
     barRuler.className = "barRuler";
@@ -282,22 +213,22 @@ function epochMilliSecondsToDate(epoch) {
 }
 
 function getSectionIdThroughParent(span) {
-    return span.parentElement.id;
+    return span.parentElement.id.split("_")[1];
 }
 
-function getCurrentSectionedLayerID() {
+function getCurrentSectionLayerID() {
     let x = document.getElementsByClassName("spanSelected")[0];
     return x.parentNode.id.split("_")[1];
 }
 
 //pass a section id e.g. 1.1.1
-//returns the element's layer_name
+//returns the element's layer name
 function sectionedLayerIDToSectionName(target) {
     return target+"_"+document.getElementById("sectionContainerInd_" + target).querySelector("span").textContent.trim();
 }
 
 //pass a section id e.g. 1.1.1
-//returns the element
+//returns the element in the html
 function sectionedLayerIDToSectionElement(target) {
     return document.getElementById("sectionContainerInd_" + target).querySelector("span");
 }
@@ -489,125 +420,4 @@ function getNewTotalTimeActionablesHolder() {
     for (const actionableName of getListOfActionablesNames())
         actionablesTimeHolder[actionableName] = "00:00:00";
     return actionablesTimeHolder;
-}
-
-
-
-
-//below are test functions (not very good) for checking usertimeinput in range
-
-//as per the function name
-function getRandomDateWithin24Hours(inputDate) {
-    const inputTime = inputDate.getTime();
-    const maxOffset = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-    const randomOffset = random() * maxOffset;
-    const randomTime = inputTime + randomOffset;
-    return new Date(randomTime);
-}
-
-//takes a start and end Date object
-//start must be less than end date
-//the total duration between start and must be less than 24 hours
-//returns a time between the start in the hh:mm:ss format
-//does NOT work as intended
-function getRandomInputInRange(start, end, isInRange) {
-    const startTime = start.getTime();
-    const endTime = end.getTime();
-
-    let randomTime;
-    if (isInRange) {
-        randomTime = random() * Math.abs(endTime - startTime) + startTime;
-        return new Date(randomTime).toTimeString().slice(0, 8);
-    }
-    else
-        return getRandomInputInRange(end, start, true);
-}
-
-//takes a yyyy,mm,dd and generates random time
-//returns a Date object
-function getRandomDate(yyyy, mm, dd) {
-    const randomHours = Math.floor(random() * 24);      // 0 to 23
-    const randomMinutes = Math.floor(random() * 60);    // 0 to 59
-    const randomSeconds = Math.floor(random() * 60);    // 0 to 59
-    const randomTime = new Date(yyyy, mm - 1, dd, randomHours, randomMinutes, randomSeconds);
-    return randomTime;
-}
-
-//get random int from 0 to max
-function getRandomInt(max) {
-    return Math.floor(random() * max);
-}
-//seeds the random number
-// Takes any integer
-let m_w = 123456789;
-let m_z = 987654321;
-const mask = 0xffffffff;
-function seed(tmp) {
-    const i = Date.now() + tmp
-    m_w = (123456789 + i) & mask;
-    m_z = (987654321 - i) & mask;
-}
-// Returns number between 0 (inclusive) and 1.0 (exclusive),
-// just like Math.random().
-function random() {
-    m_z = (36969 * (m_z & 65535) + (m_z >> 16)) & mask;
-    m_w = (18000 * (m_w & 65535) + (m_w >> 16)) & mask;
-    var result = ((m_z << 16) + (m_w & 65535)) >>> 0;
-    result /= 4294967296;
-    return result;
-}
-
-
-
-//generates startDate and endDate that may or may not be on the same day
-//the startDate is always less than the endDate
-//user input is randomly generated between them
-//does NOT work as intended
-function automatedTimeComparisonTesting() {
-    //set the startDate
-    const startDate = getRandomDate(2023, 6, 22);
-    //seed the random
-    seed(startDate.getHours());
-    const endDate = getRandomDateWithin24Hours(startDate);
-
-    //randomly generate user input
-    let inRangeCheck = true;
-    if (Date.now() % 2 === 0)
-        inRangeCheck = false;
-
-    const userInput = getRandomInputInRange(startDate, endDate, inRangeCheck);
-    console.log(new Array(startDate, endDate, userInput));
-    console.log("hours difference: " + (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60))
-    console.log(inRangeCheck + " " + inputInRange(startDate, endDate, userInput));
-}
-
-//manuel values for time testing
-//same day, between two values in the pm
-const testTimeValues1 = [new Date(2023, 08, 08, 23, 00, 00), new Date(2023, 08, 08, 23, 07, 00), "23:05:01"];
-//same day, between two values in the am
-const testTimeValues2 = [new Date(2023, 08, 08, 00, 59, 59), new Date(2023, 08, 08, 10, 01, 00), "07:00:00"];
-//same day, not between them
-const testTimeValues3 = [new Date(2023, 08, 08, 23, 00, 00), new Date(2023, 08, 08, 23, 30, 00), "01:29:01"];
-//not same day, between them in the pm
-const testTimeValues4 = [new Date(2023, 08, 08, 23, 59, 59), new Date(2023, 08, 09, 00, 01, 00), "00:00:01"];
-//not same day, between them in the am
-const testTimeValues5 = [new Date(2023, 08, 08, 23, 00, 00), new Date(2023, 08, 09, 5, 01, 00), "00:00:01"];
-//not same day, between them on 12 am
-const testTimeValues6 = [new Date(2023, 08, 08, 23, 00, 00), new Date(2023, 08, 09, 17, 01, 00), "00:00:01"];
-//not same day, between them on 12 am
-const testTimeValues7 = [new Date(2023, 08, 08, 23, 00, 00), new Date(2023, 08, 09, 23, 01, 00), "00:00:00"];
-//not same day, not between them
-const testTimeValues8 = [new Date(2023, 08, 08, 23, 07, 00), new Date(2023, 08, 09, 23, 01, 00), "23:05:01"];
-
-const arrayTester = [testTimeValues1, testTimeValues2, testTimeValues3, testTimeValues4, testTimeValues5, testTimeValues6, testTimeValues7, testTimeValues8]
-const expectedValues = [true, true, false, true, true, true, true, false]
-
-function testTimeComparison(arrayForTesting, expectedValuesOfArray) {
-    arrayForTesting.forEach((dateArray, index) => {
-        const t1 = new Date(dateArray[0]).getTime();
-        const t2 = new Date(dateArray[1]).getTime();
-        console.log(dateArray);
-        console.log("Results: " + inputInRange(t1, t2, dateArray[2]));
-        console.log("Expected results: " + expectedValuesOfArray[index]);
-    });
 }

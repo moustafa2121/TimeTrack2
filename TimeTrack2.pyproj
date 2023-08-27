@@ -59,9 +59,11 @@
     <Content Include="TimeTrack2_APP\static\favicons_folder\white.ico" />
     <Content Include="TimeTrack2_APP\static\favicons_folder\yellow.ico" />
     <Content Include="TimeTrack2_APP\static\TimeTrack2_APP\helperJS.js" />
+    <Content Include="TimeTrack2_APP\static\TimeTrack2_APP\holderClasses.js" />
     <Content Include="TimeTrack2_APP\static\TimeTrack2_APP\leftNavContentScript.js" />
     <Content Include="TimeTrack2_APP\static\TimeTrack2_APP\mainBodyContentScript.js" />
     <Content Include="TimeTrack2_APP\static\TimeTrack2_APP\style.css" />
+    <Content Include="TimeTrack2_APP\static\TimeTrack2_APP\testFiles.js" />
     <Content Include="TimeTrack2_APP\templates\base.html" />
     <Content Include="TimeTrack2_APP\templates\TimeTrack2_APP\index.html" />
   </ItemGroup>

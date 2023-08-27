@@ -55,9 +55,6 @@ buttonEndingSession.addEventListener("click", () => {
         //end the actionable
         endActionable();
 
-        //remove the spanSelected class from the current section
-        currentSessionHolder().previouslySelectedSection.classList.remove("spanSelected");
-
         //update the session in the db
         //end the sessiona and reload the page
         endSession();
@@ -99,7 +96,7 @@ function endSession() {
 //assign the event listners for each button
 for (const actionableButton of actionableButtons) {
     actionableButton.addEventListener("click", async function () {
-        if (!currentSessionHolder().previouslySelectedSection) {//select a section
+        if (!currentlySelectedSection().sectionElement) {//select a section
             alert("You need to select a section");
             return;
         }
@@ -119,7 +116,7 @@ for (const actionableButton of actionableButtons) {
         currentActionableHolder.startFrom = Date.now();
         currentActionableHolder.actionableName = actionableButton.textContent;
         currentActionableHolder.actionableColor = actionableButton.style.backgroundColor;
-        currentActionableHolder.currentSection = getCurrentSectionedLayerID();
+        currentActionableHolder.currentSection = getCurrentSectionLayerID();
         currentActionableHolder.currentSession = currentSessionHolder().startFrom;
 
         //add it to the DB. this function will add the pk
@@ -371,11 +368,10 @@ function displayActionable(passedActionable, parentObject, caseValue) {
 }
 
 
-
 //displays the subBar of the actionable on the progress bar of the session
 //also sets up the hovering effect on the subBar
 //the divider is currently just for testing
-function displayBar(barRef, passedActionable, divider = secondsInDay) {
+function displayBar(barRef, passedActionable, divider = constantValues().displayBarMaxValue) {
     const currentSecondsAsPercentage = Math.ceil((passedActionable.endTo - passedActionable.startFrom) / 1000) * 100;
     const width = (currentSecondsAsPercentage / divider);
 

@@ -1,30 +1,50 @@
 //this script handles the left panel of the homepage
-//it displays the sections available for the user
-
-//get the sections data from JSON from the HTML
-const data = JSON.parse(document.getElementById('sectionsJson').textContent);
-const sectionsList = JSON.parse(data);
 
 //the container for all sections
-const sectionsDiv = document.getElementById("sections");
+const sectionsDiv = (function () {
+    const sectionsDiv = document.getElementById("sections");
+    return function () { return sectionsDiv; }    
+})();
 
-//hides the addSectionForm if clicked outside of it
-let firstClickedAddSectionForm = true;
-let addSectionForm = document.getElementById("addSectionForm")
+//handles holding and switching the currently selected section
+const currentlySelectedSection = (function () {
+    const currentlySelectedSectionObject = {
+        sectionElement: null,
+        sectionLayer: null,
+        sectionName: null,
+    };
+    return function (id="-1") {
+        if (id !== "-1") {
+            if (currentlySelectedSectionObject.sectionElement)
+                currentlySelectedSectionObject.sectionElement.classList.remove("spanSelected");
+            currentlySelectedSectionObject.sectionLayer = id;
+            currentlySelectedSectionObject.sectionElement = sectionedLayerIDToSectionElement(id);
+            currentlySelectedSectionObject.sectionName = sectionedLayerIDToSectionName(id);
+            currentlySelectedSectionObject.sectionElement.classList.add("spanSelected");
+        }
+        return currentlySelectedSectionObject;
+    }
+})();
 
-//add an addSectionButton that can be used to add sections of layer 1
-const addSectionButton_layer1 = document.createElement("button");
-addSectionButton_layer1.className = "addSectionButton";
-addSectionButton_layer1.textContent = "+";
-addSectionButton_layer1.style.textDecorationThickness = "3px";
-addSectionButton_layer1.title = "Add a subsection"
-sectionsDiv.appendChild(addSectionButton_layer1);
-addSectionButtonFunction(addSectionButton_layer1, sectionsDiv.querySelector("h3"))
+//called on when the page loads
+function loadLeftNavPanel() {
+    //get the sections data from JSON from the HTML
+    const data = JSON.parse(document.getElementById('sectionsJson').textContent);
+    const sectionsList = JSON.parse(data);
 
+    //display each section
+    for (const section of sectionsList)
+        displaySection(section);
 
-//loop over the sections
-for (const section of sectionsList)
-    displaySection(section);
+    //add an addSectionButton that can be used to add sections of layer 1
+    const addSectionButton_layer1 = document.createElement("button");
+    addSectionButton_layer1.className = "addSectionButton";
+    addSectionButton_layer1.textContent = "+";
+    addSectionButton_layer1.style.textDecorationThickness = "3px";
+    addSectionButton_layer1.title = "Add a subsection"
+    sectionsDiv().appendChild(addSectionButton_layer1);
+    addSectionButtonFunction(addSectionButton_layer1, sectionsDiv().querySelector("h3"))
+}
 
 //display each section
 function displaySection(passedSection) {
@@ -70,7 +90,7 @@ function displaySection(passedSection) {
     //append it to the main section container (sectionsDiv)
     if (layer == "1") {
         sectionContainer.style.marginTop = "10px";
-        sectionsDiv.appendChild(sectionContainer);
+        sectionsDiv().appendChild(sectionContainer);
     }
     else {//all other layers
         //get the parent of this section and append this section to the parrent
@@ -83,7 +103,7 @@ function displaySection(passedSection) {
         parentSection.appendChild(sectionContainer);
     }
 
-    //if the section is not last layer, add a collapsible and add subsection button events
+    //if the section is not last layer, add a collapsible
     if (layer != "4") {
         //collapsible button for each section that can hold a subsection
         collapseButton.addEventListener("click", () => {
@@ -102,12 +122,8 @@ function displaySection(passedSection) {
     
     //selecting an individual section as the current section
     content.addEventListener("click", function () {
-        if (currentSessionHolder().previouslySelectedSection != content) {
-            content.classList.toggle("spanSelected");
-            if (currentSessionHolder().previouslySelectedSection)//switching between sections
-                currentSessionHolder().previouslySelectedSection.classList.toggle("spanSelected");
-            currentSessionHolder().previouslySelectedSection = content;
-        }
+        if (currentlySelectedSection().sectionElement != content)
+            currentlySelectedSection(getSectionIdThroughParent(content));
     })
 }
 
@@ -115,6 +131,7 @@ function displaySection(passedSection) {
 function saveSection(event) {
     //prevent submitting the form
     event.preventDefault();
+
     const form = event.target;
     const addSectionFormParentValue = form.elements["addSectionFormParent"].value;
     const name = form.elements["name"].value;
@@ -128,36 +145,39 @@ function saveSection(event) {
         },
         body: JSON.stringify({ "passedSection": dict })
     })
-        .then(response => {
-            if (!response.ok) {
-                // Handle error response here
-                return response.json().then(data => {
-                    throw new Error(data.error);
-                });
-            }
-            return response.json();
-        })
-        .then(data => {
-            displaySection(JSON.parse(data.sectionToSend)[0]);
-            addFadingMessage(data.message);
+    .then(response => response.json())
+    .then(data => {
+        displaySection(JSON.parse(data.sectionToSend)[0]);
+        addFadingMessage(data.message);
 
-            //reset the form
-            form.elements["name"].value = "";
-            addSectionForm.style.display = "none";
-        })
-        .catch(error => {
-            addFadingMessage(error.message); // Display the error message
-        });
+        //reset the form
+        form.elements["name"].value = "";
+        document.querySelector("[id='addSectionForm']").style.display = "none";
+    })
+    .catch(error => {
+        addFadingMessage(error.message); // Display the error message
+    });
 }
+
+//hides the addSectionForm if clicked outside of it
+const firstClickedAddSectionForm = (function () {
+    let value;
+    return function (passedValue="-1") {
+        if (passedValue !== "-1")
+            value = passedValue;
+        return value;
+    }
+})();
 
 //subsection adding button
 function addSectionButtonFunction(addSectionButton, content, sectionContainer=-1) {
     addSectionButton.addEventListener("click", function () {
+        const addSectionForm = document.getElementById("addSectionForm")
         //set up the form's dispaly
         addSectionForm.style.display = "inline-block";
         addSectionForm.style.left = addSectionButton.getBoundingClientRect().left + 35 + "px";
         addSectionForm.style.top = addSectionButton.getBoundingClientRect().top - 10 + "px";
-        firstClickedAddSectionForm = false;
+        firstClickedAddSectionForm(false);
 
         document.getElementById("addSectionFormTitle").innerHTML = "Add a section to " + "<i>" + content.textContent + "</i>";
         //a reference to the parent of the new added section to be added properly in the backened
@@ -176,8 +196,8 @@ document.body.addEventListener('click', function (event) {
     //and the click was not on the addSection '+' button
     //the last argument to make sure that if the form is already visible, and if we
     //click on another +, the form will appear on for that section
-    if (!addSectionForm.contains(event.target) && addSectionForm.style.display != "none" && !firstClickedAddSectionForm) {
+    if (!addSectionForm.contains(event.target) && addSectionForm.style.display != "none" && !firstClickedAddSectionForm()) {
         addSectionForm.style.display = "none";
-        firstClickedAddSectionForm = true;
+        firstClickedAddSectionForm(true);
     }
 });
