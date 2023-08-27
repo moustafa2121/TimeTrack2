@@ -53,9 +53,10 @@ def homepage(request):
 
 def updateSession(request):
     if request.method == "POST":
-        sessionJson = json.loads(request.body)["passedSession"]
+        sessionJson = json.loads(request.body)
         try:
             if not SessionTime.objects.filter(startFrom=sessionJson["startFrom"]).exists():#start new session
+                print("no former session");
                 newSession = SessionTime(startFrom=sessionJson["startFrom"], archived=False)
                 newSession.save()
             else:#ending session. update the DB

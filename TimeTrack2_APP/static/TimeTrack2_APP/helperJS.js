@@ -4,16 +4,9 @@ const displayBarMaxValue = secondsInDay/3600;
 
 //holds the current actionables and the current session data in local stroage
 //as persistant data to be used when refreshing/reloading the page
-let currentSessionHolder;
+
 let currentActionableHolder;
-function getNewCurrentSessionData() {
-    return {
-        previouslySelectedSection: null,
-        startFrom: 0,
-        endTo: 0,
-        activeSession: false,
-    }
-}
+
 function getNewCurrentActionable() {
     return {
         startFrom: 0,
@@ -26,20 +19,79 @@ function getNewCurrentActionable() {
         pk: -1,
     }
 }
-//returns an object that holds the total time for 
-//each actionable type in one session
-function getNewTotalTimeActionablesHolder() {
-    let actionablesTimeHolder = {};
-    for (const actionableName of getListOfActionablesNames())
-        actionablesTimeHolder[actionableName] = "00:00:00";
-    return actionablesTimeHolder;
+
+//let currentSessionHolder;
+//function getNewCurrentSessionData() {
+//    return {
+//        previouslySelectedSection: null,
+//        startFrom: 0,
+//        endTo: 0,
+//        activeSession: false,
+//    }
+//}
+
+class CurrentSessionHolder {
+    constructor() {
+        this._previouslySelectedSection = null;
+    }
+    //setters and getters for the endTo
+    get endTo() {
+        return this._endTo;
+    }
+    set endTo(value) {
+        if (this.isActiveSession())
+            this._endTo = value;
+        else
+            console.log("session hasn't started yet, cannot end");
+    }
+    //setters and getters for the startFrom
+    get startFrom() {
+        return this._startFrom;
+    }
+    set startFrom(value) {
+        if (!this.isActiveSession() && this._endTo !== undefined) 
+            console.log("session has already ended, start a new one");
+        else
+            this._startFrom = value;
+    }
+    //returns if the session is currently active or not
+    isActiveSession() {
+        const evalu = XOR(this._startFrom, this._endTo);
+        return (evalu !== undefined) ? evalu : false;
+    }
+    //setters and getters for previouslySelectedSection 
+    set previouslySelectedSection(value) {
+        this._previouslySelectedSection = value;
+    }
+    get previouslySelectedSection() {
+        return this._previouslySelectedSection;
+    }
+    toJSON() {
+        return {
+            startFrom: this._startFrom,
+            endTo: (this._endTo === undefined) ? 0 : this._endTo,
+        }
+    }
 }
+
+//closure for the session holder class
+currentSessionHolder = (function () {
+    let tmp = new CurrentSessionHolder();
+    return function (newSession = false) {
+        if (newSession && !tmp.isActiveSession())
+            tmp = new CurrentSessionHolder();
+        return tmp;
+    };
+})();
 
 //on opening the page
 //attempts to load any data from the DB
 //if available it will display them
 //Also responsible for handling the archived sessions and displaying them
 window.addEventListener("load", () => {
+    //start a new session and actionable holders
+    currentSessionHolder(true);
+    currentActionableHolder = getNewCurrentActionable();
     //get current archived session from the html JSON
     const currentSessionDB = JSON.parse(document.getElementById('currentSessionDB').textContent);
     //if the length is not 0, there is a current session form the DB
@@ -49,10 +101,9 @@ window.addEventListener("load", () => {
         currentSessionDBActionables = JSON.parse(currentSessionDB[1]);
 
         //currentSessionDB to currentSessionHolder
-        currentSessionHolder = getNewCurrentSessionData();
-        currentSessionHolder.previouslySelectedSection = sectionedLayerIDToSectionElement(currentSessionDBActionables[0].currentSection.sectionedLayer);
-        currentSessionHolder.startFrom = currentSessionDBValues["pk"];
-        currentSessionHolder.activeSession = true;
+        currentSessionHolder().previouslySelectedSection = sectionedLayerIDToSectionElement(currentSessionDBActionables[currentSessionDBActionables.length - 1].currentSection.sectionedLayer);
+        currentSessionHolder().startFrom = currentSessionDBValues["pk"];
+        currentSessionHolder().previouslySelectedSection.classList.add("spanSelected");
 
         //current actionable db to the currentActionableHolder
         const currentActionableFromDB = currentSessionDBActionables[currentSessionDBActionables.length - 1]
@@ -65,8 +116,6 @@ window.addEventListener("load", () => {
         currentActionableHolder.actionableColor = getActionableColor(currentActionableHolder.actionableName);
         currentActionableHolder.pk = currentActionableFromDB.id;
 
-        //set the session to be spanSelected
-        currentSessionHolder.previouslySelectedSection.classList.add("spanSelected");
 
         //start session and actionable and display them
         buttonEndingSession.classList.remove("sessionFadedButton");
@@ -77,10 +126,6 @@ window.addEventListener("load", () => {
         //list of the actionables of the current session (excluding the current actionable)
         const actionablesContainer = document.getElementsByClassName("singleSessionActionablesContainer")[0];
         displaySingleSession(actionablesContainer, currentSessionDBActionables.slice(0, currentSessionDBActionables.length-1), 2)
-    }
-    else {//else there is no current session
-        currentSessionHolder = getNewCurrentSessionData();
-        currentActionableHolder = getNewCurrentActionable();
     }
 
     //get all archived sessions from the html JSON
@@ -282,7 +327,7 @@ function getActionableColor(actionableName) {
 //for testing
 document.getElementById("totalButtonReset").addEventListener("click", (event) => {
     localStorage.clear();
-    currentSessionHolder = getNewCurrentSessionData();
+    currentSessionHolder(true);
     currentActionableHolder = getNewCurrentActionable();
     location.reload()
 })
@@ -417,6 +462,35 @@ function addTimeStringsArray(timeArray) {
     });
     return totalSum;
 }
+
+//disables/enables the actionable buttons
+//usually used in starting and ending sessions so the user
+//does not start a new actionable while saving a new session
+function enableActionableButtons(enable) {
+    Array.from(actionableButtons).map(target => target.disabled = !enable)
+}
+
+//if there is a second child to the parent, then
+//enables or diables the delete button of an actionable
+function enableDeleteButton(parentObject, enable) {
+    const currentSecondChild = parentObject.querySelectorAll(".singleActionableDiv")[1];
+    if (currentSecondChild) 
+        currentSecondChild.querySelector("button").classList.toggle("sessionFadedButton", enable);
+}
+
+function XOR(a, b) {
+    return (a || b) && !(a && b);
+}
+
+//returns an object that holds the total time for 
+//each actionable type in one session
+function getNewTotalTimeActionablesHolder() {
+    let actionablesTimeHolder = {};
+    for (const actionableName of getListOfActionablesNames())
+        actionablesTimeHolder[actionableName] = "00:00:00";
+    return actionablesTimeHolder;
+}
+
 
 
 

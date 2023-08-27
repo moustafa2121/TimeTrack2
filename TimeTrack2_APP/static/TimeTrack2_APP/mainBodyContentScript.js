@@ -21,11 +21,10 @@ totalSessionTimeOutput.textContent = totalSecondsToTime(0);
 //object in the DB to relate to
 function startSession(){    
     //set the session to be active
-    currentSessionHolder.activeSession = true;
-    currentSessionHolder.startFrom = Date.now();
+    currentSessionHolder().startFrom = Date.now();
 
     //disabled the actionable buttons - until the session is finished saving
-    Array.from(actionableButtons).map(target => target.disabled = true)
+    enableActionableButtons(false);
     //save the new session and return a fetch
     return fetch("/update-session/", {
         method: "POST",
@@ -33,18 +32,18 @@ function startSession(){
             "Content-Type": "application/json",
             "X-CSRFToken": document.querySelector('input[name="csrfmiddlewaretoken"]').value
         },
-        body: JSON.stringify({ "passedSession": currentSessionHolder })
+        body: JSON.stringify(currentSessionHolder())
         })
         .then(response => response.json())
         .then(data => {
-            Array.from(actionableButtons).map(target => target.disabled = false)
+            enableActionableButtons(true);
             addFadingMessage(data.message);
             //after the session in the DB, activate the button ending session
             buttonEndingSession.classList.remove("sessionFadedButton");
         })
         .catch(error => {
             addFadingMessage(error);
-            Array.from(actionableButtons).map(target => target.disabled = false)
+            enableActionableButtons(true);
         });
 }
 
@@ -57,32 +56,26 @@ buttonEndingSession.addEventListener("click", () => {
         endActionable();
 
         //remove the spanSelected class from the current section
-        currentSessionHolder.previouslySelectedSection.classList.remove("spanSelected");
-        //set the session to false
-        currentSessionHolder.activeSession = false;
+        currentSessionHolder().previouslySelectedSection.classList.remove("spanSelected");
 
         //update the session in the db
+        //end the sessiona and reload the page
         endSession();
-
-        //reset the timer display of the total session time
-        totalSessionTimeOutput.textContent = totalSecondsToTime(0);
-        //intialize a new currentSessionData
-        currentSessionHolder = getNewCurrentSessionData();
     }
 });
 
 //saves the session when ending it
 function endSession() {
     //disable actionables temorarily, wait for the session to save
-    Array.from(actionableButtons).map(target => target.disabled = true)
-    currentSessionHolder.endTo = Date.now();
+    enableActionableButtons(false);
+    currentSessionHolder().endTo = Date.now();
     fetch("/update-session/", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
             "X-CSRFToken": document.querySelector('input[name="csrfmiddlewaretoken"]').value
         },
-        body: JSON.stringify({ "passedSession": currentSessionHolder })
+        body: JSON.stringify(currentSessionHolder())
     })
     .then(response => response.json())
     .then(data => {
@@ -92,12 +85,13 @@ function endSession() {
         //reload the page so the previous session is placed within the archived ones in the homepage
         location.reload();
         addFadingMessage(data.message);
-        Array.from(actionableButtons).map(target => target.disabled = false)
+        enableActionableButtons(true);
+
     })
     .catch(error => {
         location.reload();
         addFadingMessage(error);
-        Array.from(actionableButtons).map(target => target.disabled = false)
+        enableActionableButtons(true);
     });                
 }
 
@@ -105,14 +99,14 @@ function endSession() {
 //assign the event listners for each button
 for (const actionableButton of actionableButtons) {
     actionableButton.addEventListener("click", async function () {
-        if (!currentSessionHolder.previouslySelectedSection) {//select a section
+        if (!currentSessionHolder().previouslySelectedSection) {//select a section
             alert("You need to select a section");
             return;
         }
 
         //start a session
         //a promise to wait for a session to be saved
-        if (!currentSessionHolder.activeSession)
+        if (!currentSessionHolder().isActiveSession())
             await startSession();
 
         //end the previous actionable if there was one
@@ -126,7 +120,7 @@ for (const actionableButton of actionableButtons) {
         currentActionableHolder.actionableName = actionableButton.textContent;
         currentActionableHolder.actionableColor = actionableButton.style.backgroundColor;
         currentActionableHolder.currentSection = getCurrentSectionedLayerID();
-        currentActionableHolder.currentSession = currentSessionHolder.startFrom;
+        currentActionableHolder.currentSession = currentSessionHolder().startFrom;
 
         //add it to the DB. this function will add the pk
         //from DB to the currentActionableHolder
@@ -147,7 +141,7 @@ function startActionable() {
     timerIntervalRef = setInterval(() => {
         const delta = Date.now() - currentActionableHolder.startFrom;
         currentActionableOutput.textContent = totalSecondsToTime(Math.floor(delta / 1000));
-        totalSessionTimeOutput.textContent = totalSecondsToTime(Math.floor((Date.now() - currentSessionHolder.startFrom) / 1000));
+        totalSessionTimeOutput.textContent = totalSecondsToTime(Math.floor((Date.now() - currentSessionHolder().startFrom) / 1000));
         //change the tab title
         document.title = currentActionableHolder.actionableName + " : " + currentActionableOutput.textContent;
     }, 1000);
@@ -330,7 +324,7 @@ function displayActionable(passedActionable, parentObject, caseValue) {
 
         //if there is a second child to the parent, then
         //make sure only the most recent actionable can be deleted
-        enableDisableDeleteButton(parentObject, false);
+        enableDeleteButton(parentObject, true);
 
         //add an event listener for the delete button
         actionableDeleteButton.addEventListener("click", () => {
@@ -363,7 +357,7 @@ function displayActionable(passedActionable, parentObject, caseValue) {
                         updateActionable(null, constObjSend);
 
                         //enable the button for the below actionable, if any
-                        enableDisableDeleteButton(parentObject, true);
+                        enableDeleteButton(parentObject, false);
 
                         //remove the actionable from the page
                         parentObject.querySelectorAll(".singleActionableDiv")[0].remove();
@@ -376,16 +370,7 @@ function displayActionable(passedActionable, parentObject, caseValue) {
     }
 }
 
-//enables or diables the delete button of an actionable
-function enableDisableDeleteButton(parentObject, enable) {
-    const currentSecondChild = parentObject.querySelectorAll(".singleActionableDiv")[1];
-    if (currentSecondChild) {
-        if (enable)
-            currentSecondChild.querySelector("button").classList.remove("sessionFadedButton");
-        else
-            currentSecondChild.querySelector("button").classList.add("sessionFadedButton");
-    }
-}
+
 
 //displays the subBar of the actionable on the progress bar of the session
 //also sets up the hovering effect on the subBar
