@@ -165,12 +165,12 @@ function timeInputValidatorFunction(userInput) {
                 updateTotalTime(totalTime, parseInt(thisStartFrom), evaluation.getTime());
 
                 //change the output/startFrom of the current actionable
-                currentActionableHolder.startFrom = evaluation.getTime();
+                currentActionableHolder().startFrom = evaluation.getTime();
 
                 //update the current actionable in the DB
                 const constObjSend = {
-                    "pk": currentActionableHolder.pk,
-                    "startFrom": currentActionableHolder.startFrom,
+                    "pk": currentActionableHolder().pk,
+                    "startFrom": currentActionableHolder().startFrom,
                 };
                 updateActionable(null, constObjSend);
 

@@ -50,7 +50,6 @@ function addFadingMessage(message, interval = 4000) {
 document.getElementById("totalButtonReset").addEventListener("click", (event) => {
     localStorage.clear();
     currentSessionHolder(true);
-    currentActionableHolder = getNewCurrentActionable();
     location.reload()
 })
 

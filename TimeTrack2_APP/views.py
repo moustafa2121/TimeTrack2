@@ -101,7 +101,8 @@ def addSection(request):
 def addActionable(request):
     if request.method == 'POST':
         try:
-            actionableJson = json.loads(request.body).get('currentActionableHolder')
+            actionableJson = json.loads(request.body)
+            print(actionableJson);
             actionableChoice = ActionableChoices.objects.get(name=actionableJson["actionableName"])
             currentSection = Section.objects.get(sectionedLayer=actionableJson["currentSection"])
             currentSession = SessionTime.objects.get(startFrom=actionableJson["currentSession"])

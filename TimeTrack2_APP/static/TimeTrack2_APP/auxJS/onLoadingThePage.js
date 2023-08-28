@@ -8,7 +8,6 @@ window.addEventListener("load", () => {
 
     //start a new session and actionable holders
     currentSessionHolder(true);
-    currentActionableHolder = getNewCurrentActionable();
     //get current archived session from the html JSON
     const currentSessionDB = JSON.parse(document.getElementById('currentSessionDB').textContent);
     //if the length is not 0, there is a current session form the DB
@@ -25,21 +24,22 @@ window.addEventListener("load", () => {
 
         //current actionable db to the currentActionableHolder
         const currentActionableFromDB = currentSessionDBActionables[currentSessionDBActionables.length - 1]
-        currentActionableHolder = getNewCurrentActionable();
-        currentActionableHolder.startFrom = currentActionableFromDB.startFrom;
-        currentActionableHolder.currentSection = currentActionableFromDB.currentSection.sectionedLayer;
-        currentActionableHolder.currentSession = currentActionableFromDB.currentSession;
-        currentActionableHolder.detail = currentActionableFromDB.detail;
-        currentActionableHolder.actionableName = currentActionableFromDB.name.name;
-        currentActionableHolder.actionableColor = getActionableColor(currentActionableHolder.actionableName);
-        currentActionableHolder.pk = currentActionableFromDB.id;
+        currentActionableHolder(true, [
+            currentActionableFromDB.startFrom,
+            currentActionableFromDB.name.name,
+            getActionableColor(currentActionableFromDB.name.name),
+            currentActionableFromDB.currentSection.sectionedLayer,
+            currentActionableFromDB.currentSession,
+        ]);
+        currentActionableHolder().detail = currentActionableFromDB.detail;
+        currentActionableHolder().pk = currentActionableFromDB.id;
 
 
         //start session and actionable and display them
         buttonEndingSession.classList.remove("sessionFadedButton");
         startActionable();
         //set the actionable button to be the selected one
-        document.querySelector("#actionable_" + escapeSpaceWithBackslashes(currentActionableHolder.actionableName)).classList.add("actionableButtonSelected");
+        document.querySelector("#actionable_" + escapeSpaceWithBackslashes(currentActionableHolder().actionableName)).classList.add("actionableButtonSelected");
 
         //list of the actionables of the current session (excluding the current actionable)
         const actionablesContainer = document.getElementsByClassName("singleSessionActionablesContainer")[0];

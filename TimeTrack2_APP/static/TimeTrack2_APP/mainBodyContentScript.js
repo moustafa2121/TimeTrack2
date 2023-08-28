@@ -107,22 +107,25 @@ for (const actionableButton of actionableButtons) {
             await startSession();
 
         //end the previous actionable if there was one
-        if (currentActionableHolder && currentActionableHolder.startFrom != 0)
+        if (currentActionableHolder().startFrom !== undefined)
             endActionable();
 
-        //start a new actionable
+        //actionable selected class
         this.classList.add("actionableButtonSelected");
-        currentActionableHolder = getNewCurrentActionable();
-        currentActionableHolder.startFrom = Date.now();
-        currentActionableHolder.actionableName = actionableButton.textContent;
-        currentActionableHolder.actionableColor = actionableButton.style.backgroundColor;
-        currentActionableHolder.currentSection = currentlySelectedSection().sectionLayer;
-        currentActionableHolder.currentSession = currentSessionHolder().startFrom;
+    
+        //start a new actionable
+        currentActionableHolder(true, [
+            Date.now(),
+            actionableButton.textContent,
+            actionableButton.style.backgroundColor,
+            currentlySelectedSection().sectionLayer,
+            currentSessionHolder().startFrom,
+        ]);
 
         //add it to the DB. this function will add the pk
         //from DB to the currentActionableHolder
         //await for it to assign the pk from DB
-        await addActionable(currentActionableHolder);
+        await addActionable(currentActionableHolder());
         //start the timer 
         startActionable();
     })
@@ -136,11 +139,11 @@ function startActionable() {
 
     //begin the interval of the actionable that triggers every 1 second
     timerIntervalRef = setInterval(() => {
-        const delta = Date.now() - currentActionableHolder.startFrom;
+        const delta = Date.now() - currentActionableHolder().startFrom;
         currentActionableOutput.textContent = totalSecondsToTime(Math.floor(delta / 1000));
         totalSessionTimeOutput.textContent = totalSecondsToTime(Math.floor((Date.now() - currentSessionHolder().startFrom) / 1000));
         //change the tab title
-        document.title = currentActionableHolder.actionableName + " : " + currentActionableOutput.textContent;
+        document.title = currentActionableHolder().actionableName + " : " + currentActionableOutput.textContent;
     }, 1000);
 }
 
@@ -151,14 +154,14 @@ function endActionable() {
         document.querySelector(".actionableButtonSelected").classList.remove("actionableButtonSelected");
 
     //update the current actionable with the final data
-    currentActionableHolder.endTo = Date.now();
-    currentActionableHolder.detail = document.querySelector("#currentActionableDiv .singleActionableDetails").value;
+    currentActionableHolder().endTo = Date.now();
+    currentActionableHolder().detail = document.querySelector("#currentActionableDiv .singleActionableDetails").value;
 
     //display the current actionable in the current session actionables
-    displayActionable(currentActionableHolder, document.querySelector(".singleSessionActionablesContainer"), 2);
+    displayActionable(currentActionableHolder(), document.querySelector(".singleSessionActionablesContainer"), 2);
 
     //get the endTo for the current actionable we just displayed
-    const currentActionableEndTo = document.querySelectorAll(`[id="${currentActionableHolder.pk}"].singleActionableDiv .timeActionableDetail input`)[1];
+    const currentActionableEndTo = document.querySelectorAll(`[id="${currentActionableHolder().pk}"].singleActionableDiv .timeActionableDetail input`)[1];
     //send the endTo element to the update method
     //no need to preUpdateActionable method since the endTo value
     //here is not required to be validated
@@ -182,16 +185,16 @@ function displayCurrentActionable() {
         displayBarRuler(parentObject.parentElement);
 
     //modify the favicon    
-    faviconLink.href = faviconLink.href.replace(/\/[^/]+\.ico$/, `/${currentActionableHolder.actionableColor}.ico`)
+    faviconLink.href = faviconLink.href.replace(/\/[^/]+\.ico$/, `/${currentActionableHolder().actionableColor}.ico`)
 
     //singleActionableDiv
     const singleActionableDiv = document.createElement("div");
     singleActionableDiv.className = "singleActionableDiv";
-    singleActionableDiv.id = currentActionableHolder.pk;
+    singleActionableDiv.id = currentActionableHolder().pk;
     parentObject.appendChild(singleActionableDiv);
 
     //display the color square, the actionable name, the section, and the details
-    displayActionable_firstPart(currentActionableHolder, singleActionableDiv, 4);
+    displayActionable_firstPart(currentActionableHolder(), singleActionableDiv, 4);
 
     //display the total time of the actionable
     currentActionableOutput = document.createElement("span");
@@ -344,12 +347,12 @@ function displayActionable(passedActionable, parentObject, caseValue) {
                         const startFrom = timeSpan.querySelectorAll("input")[0].getAttribute("data-raw-value");
                         const endTo = timeSpan.querySelectorAll("input")[1].getAttribute("data-raw-value");
                         const totalEpochs = endTo - startFrom;
-                        currentActionableHolder.startFrom -= totalEpochs;
+                        currentActionableHolder().startFrom = currentActionableHolder().startFrom - totalEpochs;
 
                         //update the current actionable in the DB
                         const constObjSend = {
-                            "pk": currentActionableHolder.pk,
-                            "startFrom": currentActionableHolder.startFrom,
+                            "pk": currentActionableHolder().pk,
+                            "startFrom": currentActionableHolder().startFrom,
                         };
                         updateActionable(null, constObjSend);
 
@@ -369,10 +372,10 @@ function displayActionable(passedActionable, parentObject, caseValue) {
 
 //displays the subBar of the actionable on the progress bar of the session
 //also sets up the hovering effect on the subBar
-//the divider is currently just for testing
+//the divider is currently just for testing (its in hours)
 function displayBar(barRef, passedActionable, divider = constantValues().displayBarMaxValue) {
     const currentSecondsAsPercentage = Math.ceil((passedActionable.endTo - passedActionable.startFrom) / 1000) * 100;
-    const width = (currentSecondsAsPercentage / divider);
+    const width = (currentSecondsAsPercentage / (divider*3600));
 
     //subBar element
     const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
@@ -530,7 +533,7 @@ function addActionable(passedActionable) {
             "Content-Type": "application/json",
             "X-CSRFToken": document.querySelector('input[name="csrfmiddlewaretoken"]').value
         },
-        body: JSON.stringify({ "currentActionableHolder": passedActionable })
+        body: JSON.stringify(passedActionable)
     })
     .then(response => response.json())
     .then(data => {
