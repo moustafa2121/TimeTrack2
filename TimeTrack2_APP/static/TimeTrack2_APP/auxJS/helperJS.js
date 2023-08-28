@@ -1,7 +1,7 @@
 //constants
 const constantValues = (function () {
     //const secondsInDay = 86400;
-    const secondsInDay = 86400 / 4;
+    const secondsInDay = 86400 / 6;
     const displayBarMaxValue = secondsInDay / 3600;
     return function () {
         return {

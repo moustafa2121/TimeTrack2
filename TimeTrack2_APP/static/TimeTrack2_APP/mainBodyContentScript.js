@@ -379,6 +379,9 @@ function displayActionable(passedActionable, parentObject, caseValue) {
 
                         //remove the actionable from the page
                         parentObject.querySelectorAll(".singleActionableDiv")[0].remove();
+
+                        //remove the display subbar
+                        document.getElementById(`subBar_${passedActionable.pk}`).remove();
                     })
                     .catch(error => {
                         addFadingMessage(error);
@@ -392,32 +395,13 @@ function displayActionable(passedActionable, parentObject, caseValue) {
 //also sets up the hovering effect on the subBar
 //the divider is currently just for testing (its in hours)
 function displayBar(barRef, passedActionable, divider = constantValues().displayBarMaxValue) {
-    const currentSecondsAsPercentage = Math.ceil((passedActionable.endTo - passedActionable.startFrom) / 1000) * 100;
-    const width = (currentSecondsAsPercentage / (divider*3600));
-
-    //subBar element
-    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-    rect.setAttribute("width", `${width}%`);
-    rect.setAttribute("height", "16px");
-    rect.setAttribute("style", `fill:${passedActionable.actionableColor}`);
-    rect.classList.add("subBarClass");
-
-    //set the starting point from the last sibling
-    const barRefLastChild = Array.from(barRef.querySelectorAll(".subBarClass")).at(-1);
-    if (barRefLastChild) {
-        const w1 = parseFloat(barRefLastChild.getAttribute('x'));
-        const w2 = parseFloat(barRefLastChild.getAttribute('width'));
-        const startingX = w1 + w2;
-        rect.setAttribute("x", startingX + "%");
-    }
-    else
-        rect.setAttribute("x", 0);
-    barRef.appendChild(rect);
+    //handles the graphics of the subBar
+    const rect = displayBar_aux(barRef, passedActionable, divider)
 
     //the parent container of a single session
     const parentSessionsContainer = rect.closest(".singleSessionDiv").querySelector(".singleSessionActionablesContainer");
 
-    //the hover effect
+    //the hover effect: dispalys the total of each actionable
     rect.addEventListener("mouseenter", (event) => {
         rect.setAttribute("style", `fill: ${passedActionable.actionableColor}; stroke-width:1; stroke:rgb(0,0,0)`);
         const x = event.clientX;
@@ -438,6 +422,7 @@ function displayBar(barRef, passedActionable, divider = constantValues().display
         //total time of each actionable
         const totalTimeActionablesHolder = getNewTotalTimeActionablesHolder();
 
+        //add up the total time of each actionable
         //check if the this session has a current actionable
         const currentActionableCheck = parentSessionsContainer.parentElement.querySelector("#currentActionableDiv");
         if (currentActionableCheck) {
@@ -456,6 +441,8 @@ function displayBar(barRef, passedActionable, divider = constantValues().display
             const actionableTotalTime = Array.from(actionableDiv.querySelector(".timeActionableDetail").querySelectorAll("span")).at(-1).textContent;
             totalTimeActionablesHolder[actionableName] = addTimeStrings(totalTimeActionablesHolder[actionableName], actionableTotalTime);
         }
+
+        //display title for the barOverlay
         const totalTextNode = document.createElement("div");
         totalTextNode.classList.add("title");
         totalTextNode.textContent = "Total per Actionable"
@@ -469,8 +456,8 @@ function displayBar(barRef, passedActionable, divider = constantValues().display
             actionableValue.setAttribute("colorvalue", getActionableColor(key))
             barOverlay.appendChild(actionableValue);
         }
-
     });
+
     //remove the zoom effect
     rect.addEventListener("mouseleave", () => {
         rect.setAttribute("style", `fill:${passedActionable.actionableColor}`);
@@ -478,6 +465,65 @@ function displayBar(barRef, passedActionable, divider = constantValues().display
         parentSessionsContainer.querySelector(".zoomEffect").classList.remove("zoomEffect");;
     });
 }
+
+//handles the display of the subBar's graphics
+function displayBar_aux(parentBar, passedActionable, divider) {
+    const currentSecondsAsPercentage = Math.ceil((passedActionable.endTo - passedActionable.startFrom) / 1000) * 100;
+    const width = currentSecondsAsPercentage / (divider * 3600);
+
+    //subBar element
+    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    rect.setAttribute("width", `${width}%`);
+    rect.setAttribute("height", "16px");
+    rect.setAttribute("style", `fill:${passedActionable.actionableColor}`);
+    rect.classList.add("subBarClass");
+    rect.id = "subBar_" + passedActionable.pk;
+
+    //set the starting point from the last sibling
+    const barRefLastChild = Array.from(parentBar.querySelectorAll(".subBarClass")).at(-1);
+    if (barRefLastChild) {
+        const w1 = parseFloat(barRefLastChild.getAttribute('x'));
+        const w2 = parseFloat(barRefLastChild.getAttribute('width'));
+        const startingX = w1 + w2;
+        rect.setAttribute("x", startingX + "%");
+    }
+    else
+        rect.setAttribute("x", 0);
+    parentBar.appendChild(rect);
+
+    return rect;
+}
+
+//when a subbar is deleted or changed in length (in case endTo/startFrom changes)
+//this functions redraws it and all its succeeding siblings
+//the subBar must already exist
+function displayBar_update(updatedActionableEle, divider=constantValues().displayBarMaxValue) {
+    //the changes in the passed actionable
+    const startFrom = parseInt(updatedActionableEle.querySelectorAll(".timeActionableDetail input[data-raw-value]")[0].getAttribute("data-raw-value"));
+    const endTo = parseInt(updatedActionableEle.querySelectorAll(".timeActionableDetail input")[1].getAttribute("data-raw-value"));
+
+    //reference to the subbbar of the passed actionable
+    let currentSubbar = document.querySelector(`[id='subBar_${updatedActionableEle.closest(".singleActionableDiv").id}']`);
+
+    //calculate the new width
+    const currentSecondsAsPercentage = Math.ceil((endTo - startFrom) / 1000) * 100;
+    const width = currentSecondsAsPercentage / (divider * 3600);
+    currentSubbar.setAttribute("width", `${width}%`);
+
+    //set the new color
+    currentSubbar.setAttribute("style", `fill:${updatedActionableEle.querySelector(".singleActionableColor").style.backgroundColor}`);
+
+    ////change the next siblings's starting point
+    while (currentSubbar.nextSibling) {
+        const previousSibling = currentSubbar;
+        currentSubbar = currentSubbar.nextSibling;
+
+        const w1 = parseFloat(previousSibling.getAttribute('x'));
+        const w2 = parseFloat(previousSibling.getAttribute('width'));
+        currentSubbar.setAttribute("x", (w1 + w2) + "%");
+    }
+}
+
 
 //pre-processing for the function updateActionable
 //responsible for validating input and changing values in the field
@@ -504,8 +550,10 @@ function preUpdateActionable(event) {
     }
 
     //change the color of the square if the actionable name changed
-    if (currentTarget.name == "name")
+    if (currentTarget.name == "name") {
         currentTarget.previousSibling.style.backgroundColor = getActionableColor(newValue);
+        displayBar_update(currentTarget.closest(".singleActionableDiv"));
+    }
 
     //second:go to the DB
     updateActionable(currentTarget);

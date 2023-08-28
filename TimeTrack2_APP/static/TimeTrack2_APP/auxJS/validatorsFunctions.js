@@ -50,6 +50,10 @@ function timeInputValidatorFunction(userInput) {
                 //update the second actionable in the DB
                 updateActionable(thePreviousActionableStartFrom);
 
+                //update the display bar
+                displayBar_update(this.closest(".singleActionableDiv"));
+                displayBar_update(thePreviousActionable);
+
                 return true;
             }
             else {
@@ -84,6 +88,9 @@ function timeInputValidatorFunction(userInput) {
                     "startFrom": currentActionableHolder().startFrom,
                 };
                 updateActionable(null, constObjSend);
+
+                //update the display bar
+                displayBar_update(this.closest(".singleActionableDiv"));
 
                 return true;
             }
@@ -121,6 +128,10 @@ function timeInputValidatorFunction(userInput) {
 
                 //update the second actionable in the DB
                 updateActionable(theNextActionableEndTo);
+
+                //update the display bar
+                displayBar_update(theNextActionable);
+                displayBar_update(this.closest(".singleActionableDiv"));
 
                 return true;
             }
