@@ -11,7 +11,15 @@ const constantValues = (function () {
     }
 })();
 
+/* references */
 
+//list of actionables buttons in the html
+const actionableButtons = (function () {
+    const actionableButtonsRef = document.getElementsByClassName("actionableButton");
+    return function () { return actionableButtonsRef; };
+})();
+
+/* messages */
 const messagesContainer = document.getElementById("messagesContainer");
 let messageContainerCounter = 0;
 //todo:fading messages effect is sucky when it comes to stacking
@@ -44,14 +52,6 @@ function addFadingMessage(message, interval = 4000) {
         messageContainerCounter -= 1;
     });
 }
-
-
-//for testing
-document.getElementById("totalButtonReset").addEventListener("click", (event) => {
-    localStorage.clear();
-    currentSessionHolder(true);
-    location.reload()
-})
 
 
 /* time format functions */
@@ -174,7 +174,7 @@ function getActionableColor(actionableName) {
 //usually used in starting and ending sessions so the user
 //does not start a new actionable while saving a new session
 function enableActionableButtons(enable) {
-    Array.from(actionableButtons).map(target => target.disabled = !enable)
+    Array.from(actionableButtons()).map(target => target.disabled = !enable)
 }
 
 //return an array of actionable names

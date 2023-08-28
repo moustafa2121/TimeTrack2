@@ -1,3 +1,11 @@
+//for testing
+document.getElementById("totalButtonReset").addEventListener("click", (event) => {
+    localStorage.clear();
+    currentSessionHolder(true);
+    location.reload()
+})
+
+
 //as per the function name
 function getRandomDateWithin24Hours(inputDate) {
     const inputTime = inputDate.getTime();

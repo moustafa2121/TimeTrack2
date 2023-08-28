@@ -1,18 +1,22 @@
-//to change the favicon when the actionable changes
-const faviconLink = document.querySelector("link[rel~='icon']");
+//starting and ending the actionable timer
+const timerIntervalRef = (function () {
+    let timerIntervalRef_;
+    return function (reset = false, intervalSet=null) {
+        if (reset)//start the timer
+            timerIntervalRef_ = intervalSet;
+        else//end it
+            clearInterval(timerIntervalRef_);
+    };
+})();
 
-//a hover item that appears when hovering over an subBar
-const barOverlay = document.getElementById("barOverlay");
-
-//reference to the timer
-let timerIntervalRef;
-
-//list of actionables buttons
-const actionableButtons = document.getElementsByClassName("actionableButton");
-
-//handling sessions
-const totalSessionTimeOutput = document.getElementById("totalSessionTimeOutput");
-totalSessionTimeOutput.textContent = totalSecondsToTime(0);
+//output of the total time of the current session
+const totalSessionTimeOutput = (function () {
+    const totalSessionTimeOutputRef = document.getElementById("totalSessionTimeOutput");
+    totalSessionTimeOutputRef.textContent = totalSecondsToTime(0);
+    return function (value) {
+        totalSessionTimeOutputRef.textContent = value;
+    };
+})();
 
 //on starting a session
 //called on by the first actionable click
@@ -21,7 +25,7 @@ totalSessionTimeOutput.textContent = totalSecondsToTime(0);
 //object in the DB to relate to
 function startSession(){    
     //set the session to be active
-    currentSessionHolder().startFrom = Date.now();
+    currentSessionHolder(true).startFrom = Date.now();
 
     //disabled the actionable buttons - until the session is finished saving
     enableActionableButtons(false);
@@ -39,7 +43,7 @@ function startSession(){
             enableActionableButtons(true);
             addFadingMessage(data.message);
             //after the session in the DB, activate the button ending session
-            buttonEndingSession.classList.remove("sessionFadedButton");
+            buttonEndingSession().on;
         })
         .catch(error => {
             addFadingMessage(error);
@@ -47,19 +51,29 @@ function startSession(){
         });
 }
 
-//on ending a session
-const buttonEndingSession = document.getElementById("buttonEndSession");
-buttonEndingSession.addEventListener("click", () => {
-    //make sure the user wants to end the session
-    if (confirm("Are you sure you want to end this session? Once ended you can no longer edit the actionables of that session.")) {
-        //end the actionable
-        endActionable();
+//ending session button
+const buttonEndingSession = (function () {
+    const buttonEndingSessionRef = document.getElementById("buttonEndSession");
+    buttonEndingSessionRef.addEventListener("click", () => {
+        //make sure the user wants to end the session
+        if (confirm("Are you sure you want to end this session? Once ended you can no longer edit the actionables of that session.")) {
+            //end the actionable
+            endActionable();
 
-        //update the session in the db
-        //end the sessiona and reload the page
-        endSession();
-    }
-});
+            //update the session in the db
+            //end the sessiona and reload the page
+            endSession();
+        }
+    });
+
+    return function () {
+        return {
+            button: buttonEndingSessionRef,
+            off: buttonEndingSessionRef.classList.add("sessionFadedButton"),
+            on: buttonEndingSessionRef.classList.remove("sessionFadedButton"),
+        }
+    };
+})();
 
 //saves the session when ending it
 function endSession() {
@@ -77,7 +91,7 @@ function endSession() {
     .then(response => response.json())
     .then(data => {
         //switch the fading effect of the start/end button
-        buttonEndingSession.classList.add("sessionFadedButton");
+        buttonEndingSession().off;
 
         //reload the page so the previous session is placed within the archived ones in the homepage
         location.reload();
@@ -94,41 +108,44 @@ function endSession() {
 
 //display the actionables
 //assign the event listners for each button
-for (const actionableButton of actionableButtons) {
-    actionableButton.addEventListener("click", async function () {
-        if (!currentlySelectedSection().sectionElement) {//select a section
-            alert("You need to select a section");
-            return;
-        }
+//called on when the page loads
+function loadActionables(){
+    for (const actionableButton of actionableButtons()) {
+        actionableButton.addEventListener("click", async function () {
+            if (!currentlySelectedSection().sectionElement) {//select a section
+                alert("You need to select a section");
+                return;
+            }
 
-        //start a session
-        //a promise to wait for a session to be saved
-        if (!currentSessionHolder().isActiveSession())
-            await startSession();
+            //start a session
+            //a promise to wait for a session to be saved
+            if (!currentSessionHolder().isActiveSession())
+                await startSession();
 
-        //end the previous actionable if there was one
-        if (currentActionableHolder().startFrom !== undefined)
-            endActionable();
+            //end the previous actionable if there was one
+            if (currentActionableHolder().startFrom !== undefined)
+                endActionable();
 
-        //actionable selected class
-        this.classList.add("actionableButtonSelected");
-    
-        //start a new actionable
-        currentActionableHolder(true, [
-            Date.now(),
-            actionableButton.textContent,
-            actionableButton.style.backgroundColor,
-            currentlySelectedSection().sectionLayer,
-            currentSessionHolder().startFrom,
-        ]);
+            //actionable selected class
+            this.classList.add("actionableButtonSelected");
 
-        //add it to the DB. this function will add the pk
-        //from DB to the currentActionableHolder
-        //await for it to assign the pk from DB
-        await addActionable(currentActionableHolder());
-        //start the timer 
-        startActionable();
-    })
+            //start a new actionable
+            currentActionableHolder(true, [
+                Date.now(),
+                actionableButton.textContent,
+                actionableButton.style.backgroundColor,
+                currentlySelectedSection().sectionLayer,
+                currentSessionHolder().startFrom,
+            ]);
+
+            //add it to the DB. this function will add the pk
+            //from DB to the currentActionableHolder
+            //await for it to assign the pk from DB
+            await addActionable(currentActionableHolder());
+            //start the timer 
+            startActionable();
+        })
+    }
 }
 
 //starts the life-cycle of the actionable
@@ -138,13 +155,13 @@ function startActionable() {
     displayCurrentActionable();
 
     //begin the interval of the actionable that triggers every 1 second
-    timerIntervalRef = setInterval(() => {
+    timerIntervalRef(true, setInterval(() => {
         const delta = Date.now() - currentActionableHolder().startFrom;
         currentActionableOutput.textContent = totalSecondsToTime(Math.floor(delta / 1000));
-        totalSessionTimeOutput.textContent = totalSecondsToTime(Math.floor((Date.now() - currentSessionHolder().startFrom) / 1000));
+        totalSessionTimeOutput(totalSecondsToTime(Math.floor((Date.now() - currentSessionHolder().startFrom) / 1000)));
         //change the tab title
         document.title = currentActionableHolder().actionableName + " : " + currentActionableOutput.textContent;
-    }, 1000);
+    }, 1000));
 }
 
 //ends the life-cycle of the actionable
@@ -169,7 +186,7 @@ function endActionable() {
     updateActionable(currentActionableEndTo);
 
     //clear the interval of the actionable
-    clearInterval(timerIntervalRef);
+    timerIntervalRef(false);
     currentActionableOutput.textContent = totalSecondsToTime(0);
 }
 
@@ -185,6 +202,7 @@ function displayCurrentActionable() {
         displayBarRuler(parentObject.parentElement);
 
     //modify the favicon    
+    const faviconLink = document.querySelector("link[rel~='icon']");
     faviconLink.href = faviconLink.href.replace(/\/[^/]+\.ico$/, `/${currentActionableHolder().actionableColor}.ico`)
 
     //singleActionableDiv
@@ -404,6 +422,8 @@ function displayBar(barRef, passedActionable, divider = constantValues().display
         rect.setAttribute("style", `fill: ${passedActionable.actionableColor}; stroke-width:1; stroke:rgb(0,0,0)`);
         const x = event.clientX;
         const y = rect.getBoundingClientRect();
+        const barOverlay = document.getElementById("barOverlay");
+
         barOverlay.style.left = `${x}px`;
         barOverlay.style.top = (y.top - 170)+"px";
         barOverlay.classList.add('active');

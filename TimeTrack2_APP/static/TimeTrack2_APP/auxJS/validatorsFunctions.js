@@ -1,92 +1,3 @@
-
-//start and end is in epoch time
-//userInput is in hh:mm:ss
-//if the input is not in range, it returns false
-//if it is in range, it will return a Date object of the userInput
-function inputInRange(start, end, userInput) {
-    //esnure that end > start
-    if (start > end)
-        return false;
-    //get the date of the start and end
-    const startDate = new Date(start);
-    const endDate = new Date(end);
-    //get time in hh:mm:ss
-    const startTime = epochMilliSecondsToTime(start);
-    const endTime = epochMilliSecondsToTime(end);
-
-    //if the start and end are in the same day, just make sure that 
-    //user input  is between these two values
-    if (areDatesInSameDay(startDate, endDate)) {
-        //console.log("they are on the same day")
-        if (isTimeBetween_threeValues(startTime, endTime, userInput)) {
-            return new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate(), ...userInput.split(":"));
-        }
-        else {
-            return false;
-        }
-    }
-    else {//if they are not the same day
-        //check if the userInput is between the startTime and 12am
-        //or it is between 12am and endTime
-        if (isTimeBetween_threeValues(startTime, "23:59:59", userInput)) {
-            //console.log("user input is between start and 12 am");
-            return new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate(), ...userInput.split(":"));
-        }
-        else if (isTimeBetween_threeValues("00:00:01", endTime, userInput)) {
-            //console.log("user input is between 12am and end");
-            return new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate(), ...userInput.split(":"));
-        }
-        else {
-            //console.log("user input is NOT between");
-            return false;
-        }
-    }
-}
-
-//checks if the user input is between start and end time
-function isTimeBetween_threeValues(startTime, endTime, userTime) {
-    const [startHours, startMinutes, startSeconds] = startTime.split(':').map(Number);
-    const [endHours, endMinutes, endSeconds] = endTime.split(':').map(Number);
-    const [userHours, userMinutes, userSeconds] = userTime.split(':').map(Number);
-
-    const startDate = new Date(0);
-    startDate.setUTCHours(startHours);
-    startDate.setUTCMinutes(startMinutes);
-    startDate.setUTCSeconds(startSeconds);
-
-    const endDate = new Date(0);
-    endDate.setUTCHours(endHours);
-    endDate.setUTCMinutes(endMinutes);
-    endDate.setUTCSeconds(endSeconds);
-
-    const userDate = new Date(0);
-    userDate.setUTCHours(userHours);
-    userDate.setUTCMinutes(userMinutes);
-    userDate.setUTCSeconds(userSeconds);
-
-    return userDate >= startDate && userDate <= endDate;
-}
-
-//takes two dates of type Date
-//returns if they are in the same EXACT day or not
-function areDatesInSameDay(date1, date2) {
-    return (
-        date1.getFullYear() === date2.getFullYear() &&
-        date1.getMonth() === date2.getMonth() &&
-        date1.getDate() === date2.getDate()
-    );
-}
-
-//takes an element and message
-//sets a message that will timeout after duration
-function setInvalidityMessage(element, theMessage, duration = 1000) {
-    element.setCustomValidity(theMessage);
-    element.reportValidity();
-    setTimeout(() => {
-        element.setCustomValidity("");
-    }, duration);
-}
-
 //used by actionable fields to validate their input
 function validatorFunction() {
     return true;
@@ -226,3 +137,94 @@ function timeInputValidatorFunction(userInput) {
     }
     return false;
 }
+
+
+//takes an element and message
+//sets a message that will timeout after duration
+function setInvalidityMessage(element, theMessage, duration = 1000) {
+    element.setCustomValidity(theMessage);
+    element.reportValidity();
+    setTimeout(() => {
+        element.setCustomValidity("");
+    }, duration);
+}
+
+//start and end is in epoch time
+//userInput is in hh:mm:ss
+//if the input is not in range, it returns false
+//if it is in range, it will return a Date object of the userInput
+function inputInRange(start, end, userInput) {
+    //esnure that end > start
+    if (start > end)
+        return false;
+    //get the date of the start and end
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    //get time in hh:mm:ss
+    const startTime = epochMilliSecondsToTime(start);
+    const endTime = epochMilliSecondsToTime(end);
+
+    //if the start and end are in the same day, just make sure that 
+    //user input  is between these two values
+    if (areDatesInSameDay(startDate, endDate)) {
+        //console.log("they are on the same day")
+        if (isTimeBetween_threeValues(startTime, endTime, userInput)) {
+            return new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate(), ...userInput.split(":"));
+        }
+        else {
+            return false;
+        }
+    }
+    else {//if they are not the same day
+        //check if the userInput is between the startTime and 12am
+        //or it is between 12am and endTime
+        if (isTimeBetween_threeValues(startTime, "23:59:59", userInput)) {
+            //console.log("user input is between start and 12 am");
+            return new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate(), ...userInput.split(":"));
+        }
+        else if (isTimeBetween_threeValues("00:00:01", endTime, userInput)) {
+            //console.log("user input is between 12am and end");
+            return new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate(), ...userInput.split(":"));
+        }
+        else {
+            //console.log("user input is NOT between");
+            return false;
+        }
+    }
+}
+
+//checks if the user input is between start and end time
+function isTimeBetween_threeValues(startTime, endTime, userTime) {
+    const [startHours, startMinutes, startSeconds] = startTime.split(':').map(Number);
+    const [endHours, endMinutes, endSeconds] = endTime.split(':').map(Number);
+    const [userHours, userMinutes, userSeconds] = userTime.split(':').map(Number);
+
+    const startDate = new Date(0);
+    startDate.setUTCHours(startHours);
+    startDate.setUTCMinutes(startMinutes);
+    startDate.setUTCSeconds(startSeconds);
+
+    const endDate = new Date(0);
+    endDate.setUTCHours(endHours);
+    endDate.setUTCMinutes(endMinutes);
+    endDate.setUTCSeconds(endSeconds);
+
+    const userDate = new Date(0);
+    userDate.setUTCHours(userHours);
+    userDate.setUTCMinutes(userMinutes);
+    userDate.setUTCSeconds(userSeconds);
+
+    return userDate >= startDate && userDate <= endDate;
+}
+
+//takes two dates of type Date
+//returns if they are in the same EXACT day or not
+function areDatesInSameDay(date1, date2) {
+    return (
+        date1.getFullYear() === date2.getFullYear() &&
+        date1.getMonth() === date2.getMonth() &&
+        date1.getDate() === date2.getDate()
+    );
+}
+
+

@@ -6,8 +6,18 @@ window.addEventListener("load", () => {
     //load all the sections in the left panel
     loadLeftNavPanel();
 
-    //start a new session and actionable holders
-    currentSessionHolder(true);
+    //load the actionables buttons and their events
+    loadActionables();
+
+    //load current session and current actionable
+    loadCurrentSession();
+
+    //load archived sessions
+    loadArchivedSessions();
+}, false);
+
+//load current session and current actionable
+function loadCurrentSession() {
     //get current archived session from the html JSON
     const currentSessionDB = JSON.parse(document.getElementById('currentSessionDB').textContent);
     //if the length is not 0, there is a current session form the DB
@@ -17,7 +27,7 @@ window.addEventListener("load", () => {
         currentSessionDBActionables = JSON.parse(currentSessionDB[1]);
 
         //currentSessionDB to currentSessionHolder
-        currentSessionHolder().startFrom = currentSessionDBValues["pk"];
+        currentSessionHolder(true).startFrom = currentSessionDBValues["pk"];
 
         //set the current section
         currentlySelectedSection(currentSessionDBActionables[currentSessionDBActionables.length - 1].currentSection.sectionedLayer);
@@ -36,7 +46,7 @@ window.addEventListener("load", () => {
 
 
         //start session and actionable and display them
-        buttonEndingSession.classList.remove("sessionFadedButton");
+        buttonEndingSession().on;
         startActionable();
         //set the actionable button to be the selected one
         document.querySelector("#actionable_" + escapeSpaceWithBackslashes(currentActionableHolder().actionableName)).classList.add("actionableButtonSelected");
@@ -45,7 +55,10 @@ window.addEventListener("load", () => {
         const actionablesContainer = document.getElementsByClassName("singleSessionActionablesContainer")[0];
         displaySingleSession(actionablesContainer, currentSessionDBActionables.slice(0, currentSessionDBActionables.length - 1), 2)
     }
+}
 
+//load the most recent archived sessions
+function loadArchivedSessions() {
     //get all archived sessions from the html JSON
     const archivedSessionsDiv = document.getElementById("archivedSessions");
     const sessionsList = JSON.parse(document.getElementById('allSessions').textContent);
@@ -89,8 +102,7 @@ window.addEventListener("load", () => {
 
         displaySingleSession(actionablesContainer, JSON.parse(sessionActionables[1]), 1)
     }
-}, false);
-
+}
 
 //function that displays a single session and its actionable as per
 //the arguments passed from the load event of the page
