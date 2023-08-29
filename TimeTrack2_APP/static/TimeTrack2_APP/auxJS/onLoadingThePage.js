@@ -21,10 +21,7 @@ function loadCurrentSession() {
     //get current archived session from the html JSON
     const currentSessionDB = JSON.parse(document.getElementById('currentSessionDB').textContent);
     //if the length is not 0, there is a current session form the DB
-    console.log(currentSessionDB);
     if (currentSessionDB.length !== 0) {
-        console.log("current session from DB");
-
         //get the data from the json
         currentSessionDBValues = JSON.parse(currentSessionDB[0])[0];
         currentSessionDBActionables = JSON.parse(currentSessionDB[1]);

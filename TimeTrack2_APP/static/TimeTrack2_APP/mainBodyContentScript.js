@@ -65,8 +65,6 @@ const buttonEndingSession = (function () {
         //define the listener for ending the session
         buttonEndingSessionRef.addEventListener("click", function () {
             //make sure the user wants to end the session
-            console.log(currentSessionHolder().expiredSession);
-            console.log(currentSessionHolder().expiredSession !== 0);
             if (currentSessionHolder().expiredSession !== 0 || confirm("Are you sure you want to end this session? Once ended you can no longer edit the actionables of that session.")) {
                 //end the actionable
                 endActionable();

@@ -225,7 +225,7 @@ function isTimeBetween_threeValues(startTime, endTime, userTime) {
     userDate.setUTCMinutes(userMinutes);
     userDate.setUTCSeconds(userSeconds);
 
-    return userDate >= startDate && userDate <= endDate;
+    return userDate > startDate && userDate < endDate;
 }
 
 //takes two dates of type Date
