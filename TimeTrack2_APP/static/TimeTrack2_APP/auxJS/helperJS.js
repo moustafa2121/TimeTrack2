@@ -3,10 +3,12 @@ const constantValues = (function () {
     //const secondsInDay = 86400;
     const secondsInDay = 86400 / 6;
     const displayBarMaxValue = secondsInDay / 3600;
+    const maxSessionSeconds = 24 * 3600;
     return function () {
         return {
             secondsInDay: secondsInDay,
             displayBarMaxValue: displayBarMaxValue,
+            maxSessionSeconds: maxSessionSeconds,
         }
     }
 })();

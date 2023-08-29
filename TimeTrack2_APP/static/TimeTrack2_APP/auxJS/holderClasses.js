@@ -4,7 +4,10 @@
 const currentSessionHolder = (function () {
     //a class that holds values for the current session
     class CurrentSessionHolder {
-        constructor() { }
+        constructor() {
+            //happens when the session is expired
+            this._autoEndTo = 0;
+        }
 
         //setters and getters for the endTo
         get endTo() {
@@ -16,6 +19,10 @@ const currentSessionHolder = (function () {
             else
                 console.log("session hasn't started yet, cannot end");
         }
+
+        //setters and getters for the expiredSession
+        set expiredSession(value) { this._autoEndTo = value; }
+        get expiredSession() { return this._autoEndTo; }
 
         //setters and getters for the startFrom
         get startFrom() {
@@ -33,6 +40,25 @@ const currentSessionHolder = (function () {
             const evalu = XOR(this._startFrom, this._endTo);
             return (evalu !== undefined) ? evalu : false;
         }
+
+        //checks if the session is expired
+        //a session is expired if its total time exceeds the maxSessionSeconds
+        sessionExpiredValue() {
+            const maxSessionMilliSeconds = constantValues().maxSessionSeconds * 1000;
+            const maxTimeEnding = this._startFrom + maxSessionMilliSeconds;
+
+            //checks if the session is expired
+            //sets the autoEnd that will be used by
+            //both the current session and the current actionable
+            if (Math.floor((Date.now() - this.startFrom) / 1000) >= constantValues().maxSessionSeconds) {
+                const remainingPeriod = maxTimeEnding - currentActionableHolder().startFrom;
+                this.expiredSession = currentActionableHolder().startFrom + remainingPeriod;;
+                return -1;
+            }
+            else //if it is not expired, return the remaining time
+                return maxTimeEnding - Date.now();
+        }
+
         toJSON() {
             return {
                 startFrom: this._startFrom,

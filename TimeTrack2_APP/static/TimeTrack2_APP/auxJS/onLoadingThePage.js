@@ -2,7 +2,7 @@
 //attempts to load any data from the DB
 //if available it will display them
 //Also responsible for handling the archived sessions and displaying them
-window.addEventListener("load", () => {
+window.addEventListener("load", (event) => {
     //load all the sections in the left panel
     loadLeftNavPanel();
 
@@ -21,7 +21,10 @@ function loadCurrentSession() {
     //get current archived session from the html JSON
     const currentSessionDB = JSON.parse(document.getElementById('currentSessionDB').textContent);
     //if the length is not 0, there is a current session form the DB
+    console.log(currentSessionDB);
     if (currentSessionDB.length !== 0) {
+        console.log("current session from DB");
+
         //get the data from the json
         currentSessionDBValues = JSON.parse(currentSessionDB[0])[0];
         currentSessionDBActionables = JSON.parse(currentSessionDB[1]);
@@ -54,6 +57,23 @@ function loadCurrentSession() {
         //list of the actionables of the current session (excluding the current actionable)
         const actionablesContainer = document.getElementsByClassName("singleSessionActionablesContainer")[0];
         displaySingleSession(actionablesContainer, currentSessionDBActionables.slice(0, currentSessionDBActionables.length - 1), 2)
+
+        //check if the session has expired
+        //if it did, then end the session
+        //the endTo value of both the session and the currentActionable
+        //will be set at the end of the remainingtime
+        const sessionExpireValue = currentSessionHolder().sessionExpiredValue();
+        if (sessionExpireValue === -1) //end the session
+            buttonEndingSession().button.click();
+        else {
+            //if not expired, set an interval that will trigger at the end of the
+            //remaining time, and it will automatically end the session
+            setInterval(() => {
+                currentSessionHolder().sessionExpiredValue();
+                buttonEndingSession().button.click();
+            }, sessionExpireValue)
+        }
+
     }
 }
 

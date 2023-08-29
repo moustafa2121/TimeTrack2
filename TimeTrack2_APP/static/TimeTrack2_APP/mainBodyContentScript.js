@@ -25,7 +25,13 @@ const totalSessionTimeOutput = (function () {
 //object in the DB to relate to
 function startSession(){    
     //set the session to be active
-    currentSessionHolder(true).startFrom = Date.now();
+    currentSessionHolder().startFrom = Date.now();
+
+    //set up an interval that will auto end the session if exeeds the max time for session
+    setInterval(() => {
+        currentSessionHolder().sessionExpiredValue();
+        buttonEndingSession().button.click();
+    }, currentSessionHolder().sessionExpiredValue())
 
     //disabled the actionable buttons - until the session is finished saving
     enableActionableButtons(false);
@@ -54,19 +60,22 @@ function startSession(){
 //ending session button
 const buttonEndingSession = (function () {
     const buttonEndingSessionRef = document.getElementById("buttonEndSession");
-    buttonEndingSessionRef.addEventListener("click", () => {
-        //make sure the user wants to end the session
-        if (confirm("Are you sure you want to end this session? Once ended you can no longer edit the actionables of that session.")) {
-            //end the actionable
-            endActionable();
-
-            //update the session in the db
-            //end the sessiona and reload the page
-            endSession();
-        }
-    });
 
     return function () {
+        //define the listener for ending the session
+        buttonEndingSessionRef.addEventListener("click", function () {
+            //make sure the user wants to end the session
+            console.log(currentSessionHolder().expiredSession);
+            console.log(currentSessionHolder().expiredSession !== 0);
+            if (currentSessionHolder().expiredSession !== 0 || confirm("Are you sure you want to end this session? Once ended you can no longer edit the actionables of that session.")) {
+                //end the actionable
+                endActionable();
+
+                //update the session in the db
+                //end the sessiona and reload the page
+                endSession();
+            }
+        });
         return {
             button: buttonEndingSessionRef,
             off: buttonEndingSessionRef.classList.add("sessionFadedButton"),
@@ -79,7 +88,11 @@ const buttonEndingSession = (function () {
 function endSession() {
     //disable actionables temorarily, wait for the session to save
     enableActionableButtons(false);
-    currentSessionHolder().endTo = Date.now();
+    if (currentSessionHolder().expiredSession === 0)
+        currentSessionHolder().endTo = Date.now();
+    else
+        currentSessionHolder().endTo = currentSessionHolder().expiredSession;
+
     fetch("/update-session/", {
         method: "POST",
         headers: {
@@ -171,7 +184,12 @@ function endActionable() {
         document.querySelector(".actionableButtonSelected").classList.remove("actionableButtonSelected");
 
     //update the current actionable with the final data
-    currentActionableHolder().endTo = Date.now();
+    //if the session is expired, get the auto endTo value which is
+    //the end point of the remaining time of the session
+    if (currentSessionHolder().expiredSession === 0) 
+        currentActionableHolder().endTo = Date.now();
+    else
+        currentActionableHolder().endTo = currentSessionHolder().expiredSession;
     currentActionableHolder().detail = document.querySelector("#currentActionableDiv .singleActionableDetails").value;
 
     //display the current actionable in the current session actionables
