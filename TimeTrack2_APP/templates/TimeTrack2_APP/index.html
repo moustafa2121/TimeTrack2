@@ -6,39 +6,34 @@
 <script src="{% static 'TimeTrack2_APP/mainBodyContentScript.js' %}" defer></script>
 {{allSessions|json_script:"allSessions"}}
 {{currentSessionDB|json_script:"currentSessionDB"}}
-{{testing}}
 
 <!-- responseMessage -->
 <div id="messagesContainer"></div>
 
-<!--actionable buttons-->
-<div id="actionableButtonsDiv">
-    <br />
-
-    <h4>Select Actionables</h4><br />
-    {% for i in actionablesChoices %}
-    <button class="actionableButton" id="actionable_{{i.name}}" style="background-color:{{i.color}}">{{i.name}}</button>
-    {% endfor %}
+<div style="align-content:center; margin-top:25px" class="container-fluid">
+    <div class="row">
+        <!--actionable buttons-->
+        <div class="col-8" id="actionableButtonsDiv">
+            {% for i in actionablesChoices %}
+            <button class="actionableButton btn" id="actionable_{{i.name}}" style="color:{{i.color}}; border-color:{{i.color}}">{{i.name}}</button>
+            {% endfor %}
+        </div>
+        <div class="col-4" id="currentSessionDiv">
+            <a id="totalSessionTimeOutput"></a>
+            <button style="float:right" id="buttonEndSession" class="sessionFadedButton btn btn-outline-dark"> End Session</button>
+        </div>
+    </div>
 </div>
-<br />
-<br />
+
 <div id="barOverlay"></div>
+
 <!-- current session -->
-<div class="singleSessionDiv">
-    <div id="currentSessionDiv">
-        <h4 style="float:left">Current Session</h4>
-        <a style="margin-left:70px" id="totalSessionTimeOutput"></a>
-        <button style="float:right" id="buttonEndSession" class="sessionFadedButton"> End Session</button>
-    </div>
-    <div id="currentActionableDiv">
-        <h4 style="margin-left:5px; margin-bottom:10px">Current Actionable</h4>
-    </div>
+<div style="display:none" class="singleSessionDiv rounded shadow-sm">
+    <div id="currentActionableDiv"></div>
     <svg class="barClass"></svg>
     <div class="singleSessionActionablesContainer"></div>
 </div>
 <div id="archivedSessions"></div>
-
-
 {% endblock mainBodyContent%}
 
 <!-- left nav panel, contains sections -->
@@ -48,8 +43,10 @@
 {{sections|json_script:"sectionsJson"}}
 
 <!-- list of sections -->
-<div id="sections">
-    <h3 style="display: inline-block">Sections</h3>
+<div class=" p-3" id="sections">
+    <span id="sectionsTitle">
+        <span class="fs-5 fw-semibold">Sections</span>
+    </span>
     <div id="addSectionForm">
         <p style="height:10px;margin:0px" id="addSectionFormTitle">formTitle</p>
         <form method="post" action="/" onsubmit="return saveSection(event)">
@@ -60,20 +57,12 @@
         </form>
     </div>
 </div>
-<button id="totalButtonReset">Reset</button>
+<p class="border-top border-2 my-3"></p>
+<span>
+    <span class="p-3 fs-5 fw-semibold">Tasks</span>
+</span>
+<button style="display:none" id="totalButtonReset">Reset</button>
 {% endblock leftNavContent%}
 
 
-<!-- https://django-allauth.readthedocs.io/en/latest/views.html#login-account-login -->
-<!--{% load socialaccount %}
-<html>
-<body>
 
-    <h1>My Google OAuth Project </h1>
-    {% if user.is_authenticated %}
-        <p>Welcome, You are logged in as {{ user.username }}</p>
-    {% else %}
-        <a href="{% provider_login_url 'google' %}">Login With Google</a>
-    {% endif %}
-</body>
-</html>-->

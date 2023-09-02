@@ -69,12 +69,12 @@ class Section(models.Model):
 
 #color choices for the actionables    
 ActionableChoicesColors = [    
-    ("blue", "Blue"),
-    ("green", "Green"),
-    ("darkgreen", "Darkgreen"),
-    ("yellow", "Yellow"),
-    ("red", "Red"),
-    ("pink", "Pink"),
+    ("#3498db", "Blue"),
+    ("#2ecc71", "Green"),
+    ("#1c7d44", "Darkgreen"),
+    ("#f1c40f", "Yellow"),
+    ("#e74c3c", "Red"),
+    ("#9b59b6", "Pink"),
     ("orange", "Orange"),
     ("blueviolet", "Blueviolet"),
     ("darkmagenta", "Darkmagenta")
@@ -85,7 +85,7 @@ ActionableChoicesColors = [
 #modifiable by the user in future versions
 class ActionableChoices(models.Model):
     name = models.CharField(max_length=15, unique=True)
-    color = models.CharField(max_length=15, choices=ActionableChoicesColors, null=False, 
+    color = models.CharField(max_length=50, choices=ActionableChoicesColors, null=False, 
                              blank=True, unique=True)
     
     def save(self, *args, **kwargs):

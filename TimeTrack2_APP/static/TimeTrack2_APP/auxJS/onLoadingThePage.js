@@ -22,6 +22,9 @@ function loadCurrentSession() {
     const currentSessionDB = JSON.parse(document.getElementById('currentSessionDB').textContent);
     //if the length is not 0, there is a current session form the DB
     if (currentSessionDB.length !== 0) {
+        //set the first block to be visible
+        document.querySelectorAll(".singleSessionDiv")[0].style.display = "block";
+
         //get the data from the json
         currentSessionDBValues = JSON.parse(currentSessionDB[0])[0];
         currentSessionDBActionables = JSON.parse(currentSessionDB[1]);
@@ -49,7 +52,7 @@ function loadCurrentSession() {
         buttonEndingSession().on;
         startActionable();
         //set the actionable button to be the selected one
-        document.querySelector("#actionable_" + escapeSpaceWithBackslashes(currentActionableHolder().actionableName)).classList.add("actionableButtonSelected");
+        toggleActionablButtonSelected(document.querySelector("#actionable_" + escapeSpaceWithBackslashes(currentActionableHolder().actionableName)), true);
 
         //list of the actionables of the current session (excluding the current actionable)
         const actionablesContainer = document.getElementsByClassName("singleSessionActionablesContainer")[0];
@@ -70,7 +73,6 @@ function loadCurrentSession() {
                 buttonEndingSession().button.click();
             }, sessionExpireValue)
         }
-
     }
 }
 
@@ -85,16 +87,17 @@ function loadArchivedSessions() {
         //for all archived sessions
         //elements for a single session
         const singleSessionDiv = document.createElement("div");
-        singleSessionDiv.className = "singleSessionDiv";
+        singleSessionDiv.classList.add("singleSessionDiv");
+        singleSessionDiv.classList.add("rounded");
+        singleSessionDiv.classList.add("shadow-sm");
         archivedSessionsDiv.appendChild(singleSessionDiv);
 
-        const title = document.createElement("h4");
-        const startFrom = session["pk"];
-        const endTo = session["fields"].endTo;
-        const totalTime = endTo - startFrom;
-        title.style.display = "inline-block";
-        title.textContent += "Session of " + epochMilliSecondsToDate(startFrom) + ": Starting from " + epochMilliSecondsToTime(startFrom) + " to " + epochMilliSecondsToTime(endTo) + ", for a total of " + totalSecondsToTime(Math.floor(totalTime / 1000));
-        singleSessionDiv.appendChild(title);
+        //set the title of the session
+        const titleDiv = document.createElement("div")
+        titleDiv.style.borderBottom = "1px black solid"
+        titleDiv.style.paddingBottom = "0px"
+        singleSessionDiv.appendChild(titleDiv);
+        setSessionTitle(session, titleDiv);
 
         //the parent bar of the subBars
         const barRef = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -102,22 +105,30 @@ function loadArchivedSessions() {
         singleSessionDiv.appendChild(barRef)
 
         const minimizingArrow = document.createElement("button");
-        minimizingArrow.textContent = "^";
+        minimizingArrow.classList.add("minimizeActionablesButton");
+        minimizingArrow.classList.add("btn");
+        minimizingArrow.classList.add("btn-outline-dark");
+        minimizingArrow.setAttribute("data-bs-toggle", "collapse");
+        minimizingArrow.setAttribute("data-bs-target", `#${session["pk"]}`);
+        minimizingArrow.appendChild(minimizingArrowIcon(true));
         singleSessionDiv.appendChild(minimizingArrow);
 
         //ruler for the bar
         displayBarRuler(singleSessionDiv);
 
+        //the container for all the actionables
         const actionablesContainer = document.createElement("div");
         actionablesContainer.className = "singleSessionActionablesContainer";
+        actionablesContainer.id = session["pk"];
+        actionablesContainer.classList.add("show");
         singleSessionDiv.appendChild(actionablesContainer);
 
         //event listener to hide the actionables
         minimizingArrow.addEventListener("click", () => {
-            actionablesContainer.style.display = actionablesContainer.style.display === "none" ? "block" : "none";
+            toggleMinimizingArrowIcon(minimizingArrow);
         });
 
-        displaySingleSession(actionablesContainer, JSON.parse(sessionActionables[1]), 1)
+        displaySingleSession(actionablesContainer, JSON.parse(sessionActionables[1]), 1);
     }
 }
 

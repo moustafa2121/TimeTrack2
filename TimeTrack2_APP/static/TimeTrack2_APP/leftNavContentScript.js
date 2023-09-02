@@ -29,12 +29,13 @@ const currentlySelectedSection = (function () {
 //called on when the page loads
 function loadLeftNavPanel() {
     //add an addSectionButton that can be used to add sections of layer 1
+    const parent = document.getElementById("sectionsTitle");
     const addSectionButton_layer1 = document.createElement("button");
     addSectionButton_layer1.className = "addSectionButton";
     addSectionButton_layer1.textContent = "+";
     addSectionButton_layer1.style.textDecorationThickness = "3px";
     addSectionButton_layer1.title = "Add a subsection"
-    sectionsDiv().appendChild(addSectionButton_layer1);
+    parent.appendChild(addSectionButton_layer1);
     addSectionButtonFunction(addSectionButton_layer1, sectionsDiv().querySelector("h3"))
 
     //get the sections data from JSON from the HTML
@@ -44,28 +45,30 @@ function loadLeftNavPanel() {
     //display each section
     for (const section of sectionsList)
         displaySection(section);
-
 }
 
 //display each section
 function displaySection(passedSection) {
     //section container: contains the section and its children (i.e. subsections)
+    const sectionedLayer = passedSection["fields"]["sectionedLayer"];//e.g. 1.1
     const sectionContainer = document.createElement("div");
-    sectionContainer.className = "sectionContainer"
-    sectionContainer.setAttribute("id", "sectionContainer_" + passedSection["fields"]["sectionedLayer"]);
+    sectionContainer.classList.add("sectionContainer");
+    sectionContainer.setAttribute("id", "sectionContainer_" + sectionedLayer);
 
     //section container only for the section itself
     //contains the collapse button, section name, and the add subsection
     const sectionContainerInd = document.createElement("div");
     sectionContainerInd.className = "sectionContainerInd"
-    sectionContainerInd.setAttribute("id", "sectionContainerInd_" + passedSection["fields"]["sectionedLayer"]);
+    sectionContainerInd.setAttribute("id", "sectionContainerInd_" + sectionedLayer);
     sectionContainer.appendChild(sectionContainerInd);
 
     //adding the collapseButton for section collapse
     const collapseButton = document.createElement("button");
     collapseButton.textContent = ">";
-    collapseButton.className = "collapseButton";
+    collapseButton.classList.add("collapseButton");
     collapseButton.title = "Collapse this section"
+    collapseButton.setAttribute("data-bs-toggle", "collapse");
+    collapseButton.setAttribute("data-bs-target", `#sectionChildren_${sectionedLayer}`);
     sectionContainerInd.appendChild(collapseButton);
 
     //set the content for the section (i.e. the name)
@@ -83,37 +86,40 @@ function displaySection(passedSection) {
     //set vertical margin for the section container
     //needed for tree-view
     const layer = passedSection["fields"]["layer"];
-    sectionContainer.style.marginLeft = 12 + "px";;
-    sectionContainer.style.marginBottom = "0px";
 
     //append the sectionContainer to the proper parent
     //if it is the first layer (i.e. a section with no parent)
     //append it to the main section container (sectionsDiv)
     if (layer == "1") {
         sectionContainer.style.marginTop = "10px";
+        sectionContainer.style.marginLeft ="0px";
         sectionsDiv().appendChild(sectionContainer);
     }
     else {//all other layers
-        //get the parent of this section and append this section to the parrent
+        //get the parent of this section and append this section to the parent's children container'
         sectionContainer.style.marginTop = "3px";
-        const parentSectionedLayer = passedSection["fields"]["sectionedLayer"].split(".");
+        const parentSectionedLayer = sectionedLayer.split(".");
         parentSectionedLayer.pop();
-        const parentSection = document.getElementById("sectionContainer_" + parentSectionedLayer.join("."));
+        const parentSectionChildrenContainerID = "sectionChildren_" + parentSectionedLayer.join(".");
+        const parentSectionChildrenContainer = document.getElementById(parentSectionChildrenContainerID);
         //ensures the display matches the parent's collapse button
-        sectionContainer.style.display = (parentSection.querySelector(".sectionContainerInd button").textContent === ">") ? "block" : "none";
-        parentSection.appendChild(sectionContainer);
+        sectionContainer.style.display = (parentSectionChildrenContainer.parentNode.querySelector(".sectionContainerInd button").textContent === ">") ? "block" : "none";
+        parentSectionChildrenContainer.appendChild(sectionContainer);
+
+        sectionContainer.style.marginLeft = 12 + "px";;
+        sectionContainer.style.marginBottom = "0px";
     }
 
-    //if the section is not last layer, add a collapsible
+
+    //collapseButton
+    //if the section is not last layer allowed (i.e. only 4 layers allowed),
+    //add a collapsible and a group for this section's children'
     if (layer != "4") {
-        //collapsible button for each section that can hold a subsection
-        collapseButton.addEventListener("click", () => {
-            const subSections = Array.from(sectionContainer.querySelectorAll(".sectionContainer"));
-            if (subSections && subSections.length>0) {
-                subSections.map(target => target.style.display = (target.style.display == "none") ? "block" : "none");
-                collapseButton.textContent = (collapseButton.textContent == ">") ? "U" : ">";
-            }
-        })
+        //group for children
+        const childrenDiv = document.createElement("div");
+        childrenDiv.id = "sectionChildren_" + sectionedLayer;
+        childrenDiv.classList.add("show");
+        sectionContainer.appendChild(childrenDiv);
 
         //subsection adding button
         addSectionButtonFunction(addSectionButton, content, sectionContainer);

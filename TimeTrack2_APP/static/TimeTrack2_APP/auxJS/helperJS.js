@@ -1,7 +1,7 @@
 //constants
 const constantValues = (function () {
     //const secondsInDay = 86400;
-    const secondsInDay = 86400 / 6;
+    const secondsInDay = 86400 /5;
     const displayBarMaxValue = secondsInDay / 3600;
     const maxSessionSeconds = 24 * 3600;
     return function () {
@@ -11,14 +11,6 @@ const constantValues = (function () {
             maxSessionSeconds: maxSessionSeconds,
         }
     }
-})();
-
-/* references */
-
-//list of actionables buttons in the html
-const actionableButtons = (function () {
-    const actionableButtonsRef = document.getElementsByClassName("actionableButton");
-    return function () { return actionableButtonsRef; };
 })();
 
 /* messages */
@@ -127,7 +119,7 @@ function addTimeStrings(timeString1, timeString2) {
 //updates the total time of a given actionable (element)
 //start and end are epoch
 function updateTotalTime(element, start, end) {
-    element.textContent = "Total: " + totalSecondsToTime(Math.floor((end - start) / 1000));
+    element.textContent = "T: " + totalSecondsToTime(Math.floor((end - start) / 1000));
 }
 
 /* section helper functions */
@@ -160,17 +152,39 @@ function getSectionIdThroughParent(span) {
 
 /* actionable helper functions */
 
-//pass an actionable name
-//returns its color
-function getActionableColor(actionableName) {
-    let t = document.querySelectorAll(".actionableButton");
-    for (let i of t) {
-        if (i.textContent == actionableName) {
-            return i.style.backgroundColor;
-        }
+//a function that is called on when an actionable is selected
+//it handles how the style of the selected actioanble
+function toggleActionablButtonSelected(buttonSelected, enable) {
+    if (enable) {
+        buttonSelected.classList.add("actionableButtonSelected");
+        buttonSelected.style.backgroundColor = buttonSelected.style.borderColor;
+        buttonSelected.style.color = "white";
     }
-    return "black";
+    else {
+        buttonSelected.classList.remove("actionableButtonSelected");
+        buttonSelected.style.color = buttonSelected.style.borderColor;
+        buttonSelected.style.backgroundColor = "transparent";
+    }
 }
+
+//list of actionables buttons in the html
+const actionableButtons = (function () {
+    const actionableButtonsRef = document.getElementsByClassName("actionableButton");
+    return function () { return actionableButtonsRef; };
+})();
+
+//a closure, pass an actionable name
+//returns its color
+const getActionableColor = (function () {
+    const actionables = document.querySelectorAll(".actionableButton");
+    const actionablesColor = {};
+    for (const actionable of actionables)
+        actionablesColor[actionable.textContent] = actionable.style.color;
+
+    return function (actionableName) {
+        return actionablesColor[actionableName];
+    }
+})();
 
 //disables/enables the actionable buttons
 //usually used in starting and ending sessions so the user
@@ -180,11 +194,11 @@ function enableActionableButtons(enable) {
 }
 
 //return an array of actionable names
-function getListOfActionablesNames() {
+const getListOfActionablesNames = (function () {
     let t = Array.from(document.querySelectorAll(".actionableButton"));
     let g = t.map(target => target.textContent);
-    return g;
-}
+    return function () { return g; }
+})();
 
 //returns an object that holds the total time for
 //each actionable type in one session
@@ -204,9 +218,125 @@ function enableDeleteButton(parentObject, enable) {
         currentSecondChild.querySelector("button").classList.toggle("sessionFadedButton", enable);
 }
 
-
-
 /* utility functions */
+
+//sets the title of the sessiona and their display
+function setSessionTitle(session, titleParent) {
+    const startFrom = session["pk"];
+    const endTo = session["fields"].endTo;
+    const totalTime = endTo - startFrom;
+    const title = document.createElement("h5");
+    title.style.display = "inline-block";
+    title.style.margin = "0px";
+    title.style.font = "0.6em";
+    title.textContent += "Session of " + epochMilliSecondsToDate(startFrom);
+    titleParent.appendChild(title);
+
+    const title2 = document.createElement("span");
+    title2.style.position = "absolute";
+    title2.style.right = "8%";
+    titleParent.appendChild(title2);
+
+    const t1 = document.createElement("h6");
+    t1.textContent = epochMilliSecondsToTime(startFrom);
+    title2.appendChild(t1);
+
+    const t2 = document.createElement("h6");
+    t2.textContent = "-";
+    t2.style.marginLeft = "8px";
+    t2.style.marginRight = "8px";
+    title2.appendChild(t2);
+
+    const t3 = document.createElement("h6");
+    t3.textContent = epochMilliSecondsToTime(endTo);
+    title2.appendChild(t3);
+
+    const t4 = document.createElement("h6");
+    t4.style.marginLeft = "20px";
+    t4.textContent = "T: " + totalSecondsToTime(Math.floor(totalTime / 1000));
+    title2.appendChild(t4);
+}
+
+
+function toggleTimeSpanPosition(enable) {
+
+}
+
+//rturns an svg element that has the trash icon
+//for the delete actionable button
+function actionableTrashIcon() {
+    // Create an SVG element using createElementNS
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    svg.setAttribute("width", "16");
+    svg.setAttribute("height", "20");
+    svg.setAttribute("fill", "currentColor");
+    svg.setAttribute("class", "bi bi-trash");
+    svg.setAttribute("viewBox", "0 0 16 20");
+
+    // Append the SVG path elements to the SVG element
+    const path1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path1.setAttribute("d", "M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Z");
+    svg.appendChild(path1);
+
+    const path2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path2.setAttribute("d", "M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z");
+    svg.appendChild(path2);
+
+    return svg;
+}
+
+//returns an svg element that has the button icon
+//for the minimizing button of the actionables
+//true for an up arrow, false for a down arrow
+function minimizingArrowIcon(isUpArrow) {
+    // Create an SVG element
+    var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+
+    // Set common SVG attributes
+    svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    svg.setAttribute("width", "16");
+    svg.setAttribute("height", "12");
+    svg.setAttribute("fill", "currentColor");
+    svg.setAttribute("class", isUpArrow ? "bi bi-arrow-bar-up" : "bi bi-arrow-bar-down");
+    svg.setAttribute("viewBox", "0 0 16 16");
+
+    // Create and set the path element
+    var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("fill-rule", "evenodd");
+    path.setAttribute(
+        "d",
+        isUpArrow
+            ? "M8 10a.5.5 0 0 0 .5-.5V3.707l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 3.707V9.5a.5.5 0 0 0 .5.5zm-7 2.5a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 0 1h-13a.5.5 0 0 1-.5-.5"
+            : "M1 3.5a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 0 1h-13a.5.5 0 0 1-.5-.5zM8 6a.5.5 0 0 1 .5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 0 1 .708-.708L7.5 12.293V6.5A.5.5 0 0 1 8 6z"
+    );
+
+    svg.appendChild(path);
+    return svg;
+}
+
+//takes the minimizingArrow element
+//if it is up arrow it will switch to down arrow and vice verca
+//also
+//has a line that will change the time span items (startFrom, endTo, and total)
+//to have the position value form absolute to relative
+//this is because of the position is absolute the collapse animation
+//is wrong. switches back when clicked again
+function toggleMinimizingArrowIcon(element) {
+    // Check if the element contains an SVG with the class 'bi-arrow-bar-up'
+    const upArrowSVG = element.querySelector(".bi-arrow-bar-up");
+    if (upArrowSVG) {
+        // If an up arrow SVG is found, replace it with a down arrow SVG
+        element.replaceChild(minimizingArrowIcon(false), upArrowSVG);
+        Array.from(element.parentNode.querySelectorAll(".singleSessionActionablesContainer .singleActionableDiv .timeActionableDetail")).map(x => x.style.position="static");
+    }
+    else {
+        // If no up arrow SVG is found, assume there's a down arrow SVG and replace it with an up arrow SVG
+        const downArrowSVG = element.querySelector(".bi-arrow-bar-down");
+        element.replaceChild(minimizingArrowIcon(true), downArrowSVG);
+        Array.from(element.parentNode.querySelectorAll(".singleSessionActionablesContainer .singleActionableDiv .timeActionableDetail")).map(x => x.style.position = "absolute");
+    }
+}
 
 function XOR(a, b) {
     return (a || b) && !(a && b);

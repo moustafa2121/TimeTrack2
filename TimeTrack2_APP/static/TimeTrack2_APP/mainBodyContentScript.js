@@ -50,6 +50,7 @@ function startSession(){
             addFadingMessage(data.message);
             //after the session in the DB, activate the button ending session
             buttonEndingSession().on;
+            document.querySelectorAll(".singleSessionDiv")[0].style.display = "block";
         })
         .catch(error => {
             addFadingMessage(error);
@@ -60,7 +61,6 @@ function startSession(){
 //ending session button
 const buttonEndingSession = (function () {
     const buttonEndingSessionRef = document.getElementById("buttonEndSession");
-
     return function () {
         //define the listener for ending the session
         buttonEndingSessionRef.addEventListener("click", function () {
@@ -117,11 +117,27 @@ function endSession() {
     });                
 }
 
+
 //display the actionables
 //assign the event listners for each button
 //called on when the page loads
 function loadActionables(){
     for (const actionableButton of actionableButtons()) {
+        //styling
+        actionableButton.addEventListener("mouseover", function () {
+            if (!this.classList.contains("actionableButtonSelected")) {
+                this.style.backgroundColor = this.style.color;
+                this.style.color = "white";
+            }
+        });
+        actionableButton.addEventListener("mouseout", function () {
+            if (!this.classList.contains("actionableButtonSelected")) {
+                this.style.color = this.style.backgroundColor;
+                this.style.backgroundColor = "transparent";
+            }
+        });
+
+        //listener when an actionable is clicked
         actionableButton.addEventListener("click", async function () {
             if (!currentlySelectedSection().sectionElement) {//select a section
                 alert("You need to select a section");
@@ -138,7 +154,7 @@ function loadActionables(){
                 endActionable();
 
             //actionable selected class
-            this.classList.add("actionableButtonSelected");
+            toggleActionablButtonSelected(this, true);
 
             //start a new actionable
             currentActionableHolder(true, [
@@ -179,7 +195,7 @@ function startActionable() {
 function endActionable() {
     //remove the selected actionable class from the previous actionable
     if (document.querySelector(".actionableButtonSelected"))
-        document.querySelector(".actionableButtonSelected").classList.remove("actionableButtonSelected");
+        toggleActionablButtonSelected(document.querySelector(".actionableButtonSelected"), false);
 
     //update the current actionable with the final data
     //if the session is expired, get the auto endTo value which is
@@ -219,11 +235,11 @@ function displayCurrentActionable() {
 
     //modify the favicon    
     const faviconLink = document.querySelector("link[rel~='icon']");
-    faviconLink.href = faviconLink.href.replace(/\/[^/]+\.ico$/, `/${currentActionableHolder().actionableColor}.ico`)
+    //faviconLink.href = faviconLink.href.replace(/\/[^/]+\.ico$/, `/${currentActionableHolder().actionableColor}.ico`)
 
     //singleActionableDiv
     const singleActionableDiv = document.createElement("div");
-    singleActionableDiv.className = "singleActionableDiv";
+    singleActionableDiv.classList.add("singleActionableDiv");
     singleActionableDiv.id = currentActionableHolder().pk;
     parentObject.appendChild(singleActionableDiv);
 
@@ -253,7 +269,7 @@ function displayActionable_firstPart(passedActionable, parentObject, caseValue) 
     //color square
     const actionableColor = document.createElement("div");
     actionableColor.style.backgroundColor = passedActionable.actionableColor;
-    actionableColor.className = "singleActionableColor";
+    actionableColor.classList.add("singleActionableColor");
     parentObject.appendChild(actionableColor);
     
     //the actionable name and section can be changed
@@ -268,7 +284,7 @@ function displayActionable_firstPart(passedActionable, parentObject, caseValue) 
     }
     else {//1 or 4
         const actionableName = document.createElement("span");
-        actionableName.className = "singleActionableName";
+        actionableName.classList.add("singleActionableName");
         actionableName.textContent = passedActionable.actionableName;
         actionableName.title = passedActionable.actionableName;
         parentObject.appendChild(actionableName);
@@ -277,7 +293,7 @@ function displayActionable_firstPart(passedActionable, parentObject, caseValue) 
         const sectionName = document.createElement("span");
         sectionName.textContent = sectionedLayerIDToSectionName(passedActionable.currentSection);
         sectionName.title = sectionedLayerIDToSectionName(passedActionable.currentSection);
-        sectionName.className = "singleActionableSection";
+        sectionName.classList.add("singleActionableSection");
         parentObject.appendChild(sectionName);
     }
 
@@ -300,7 +316,7 @@ function displayActionable_firstPart(passedActionable, parentObject, caseValue) 
         details = document.createElement("span");
         details.textContent = passedActionable.detail;
 
-    details.className = "singleActionableDetails";
+    details.classList.add("singleActionableDetails");
     parentObject.appendChild(details);
 }
 
@@ -319,7 +335,7 @@ function displayActionable(passedActionable, parentObject, caseValue) {
     
     //the parent of a single actionable
     const singleActionableDiv = document.createElement("div");
-    singleActionableDiv.className = "singleActionableDiv";
+    singleActionableDiv.classList.add("singleActionableDiv");
     singleActionableDiv.id = passedActionable.pk;
     //if the parent has a child, add the child in a stacking order (on top)
     if (parentObject.firstChild)
@@ -332,20 +348,20 @@ function displayActionable(passedActionable, parentObject, caseValue) {
         
     //time span is a span that holds the start, end and the total time of the actionable
     const timeSpan = document.createElement("span")
-    timeSpan.className = "timeActionableDetail";
+    timeSpan.classList.add("timeActionableDetail");
     singleActionableDiv.appendChild(timeSpan);
 
     //startFrom value
     initializeActionableTimeField(timeSpan, "startFrom", passedActionable.startFrom, caseValue);
     //set between the startFrom and endTo
-    const dividerText = document.createTextNode("  -->  ");
+    const dividerText = document.createTextNode("-");
     timeSpan.appendChild(dividerText);
     //endTo value
     initializeActionableTimeField(timeSpan, "endTo", passedActionable.endTo, caseValue);
 
     //total time display
     const totalTime = document.createElement("span");
-    totalTime.textContent = "Total: " + totalSecondsToTime(Math.floor((passedActionable.endTo - passedActionable.startFrom) / 1000));
+    totalTime.textContent = "T: " + totalSecondsToTime(Math.floor((passedActionable.endTo - passedActionable.startFrom) / 1000));
     timeSpan.appendChild(totalTime);
 
     //if the actionable is not part of an archived session
@@ -353,8 +369,11 @@ function displayActionable(passedActionable, parentObject, caseValue) {
         //option to delete an actionable. only active for the most 
         //recent actionable in the current active session
         const actionableDeleteButton = document.createElement("button");
-        actionableDeleteButton.textContent = "X";
+        actionableDeleteButton.classList.add("actionableDeleteButton");
+        actionableDeleteButton.classList.add("btn");
+        actionableDeleteButton.classList.add("btn-outline-dark");
         timeSpan.appendChild(actionableDeleteButton);
+        actionableDeleteButton.appendChild(actionableTrashIcon());
 
         //if there is a second child to the parent, then
         //make sure only the most recent actionable can be deleted
@@ -635,7 +654,7 @@ function addActionable(passedActionable) {
 function initializeSelect(selectClassName, parentObject, listOfOptions,
     selectedOption, selectName, passedValidatorFunction) {
     const currentSelect = document.createElement("select");
-    currentSelect.className = selectClassName;
+    currentSelect.classList.add(selectClassName);
     parentObject.appendChild(currentSelect);
 
     //popualte the actionable
