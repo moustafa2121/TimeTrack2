@@ -1,7 +1,7 @@
 //constants
 const constantValues = (function () {
     //const secondsInDay = 86400;
-    const secondsInDay = 86400 /5;
+    const secondsInDay = 86400 /2;
     const displayBarMaxValue = secondsInDay / 3600;
     const maxSessionSeconds = 24 * 3600;
     return function () {
@@ -17,7 +17,7 @@ const constantValues = (function () {
 const messagesContainer = document.getElementById("messagesContainer");
 let messageContainerCounter = 0;
 //todo:fading messages effect is sucky when it comes to stacking
-//todo: different messages (e.g. success adding and error when adding section)
+//todo: different messages (e.g. success adding anhg d error when adding section)
 //appear differently
 //add a message and then hideout after 2 seconds
 //it also removes the element after 1 second of the itnerval
@@ -47,7 +47,7 @@ function addFadingMessage(message, interval = 4000) {
     });
 }
 
-
+-
 /* time format functions */
 
 //takes epoch
@@ -92,8 +92,8 @@ function totalSecondsToTime(seconds) {
 //takes two strings of the format "Total: 00:04:08"
 //returns their added value in hh:mm:ss format
 function addTimeStrings(timeString1, timeString2) {
-    const formattedTimeString1 = timeString1.replace(/^Total: /, "");
-    const formattedTimeString2 = timeString2.replace(/^Total: /, "");
+    const formattedTimeString1 = timeString1.replace(/^[A-Za-z]+: /, "");
+    const formattedTimeString2 = timeString2.replace(/^[A-Za-z]+: /, "");
 
     const timeParts1 = formattedTimeString1.split(":");
     const timeParts2 = formattedTimeString2.split(":");
@@ -204,10 +204,10 @@ const getListOfActionablesNames = (function () {
 //each actionable type in one session
 //each intialized to 00:00:00
 function getNewTotalTimeActionablesHolder() {
-    let actionablesTimeHolder = {};
+    const actionablesTimeHolderObject = {};
     for (const actionableName of getListOfActionablesNames())
-        actionablesTimeHolder[actionableName] = "00:00:00";
-    return actionablesTimeHolder;
+        actionablesTimeHolderObject[actionableName] = "00:00:00";
+    return actionablesTimeHolderObject;
 }
 
 //if there is a second child to the parent, then
@@ -296,10 +296,10 @@ function minimizingArrowIcon(isUpArrow) {
     // Set common SVG attributes
     svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
     svg.setAttribute("width", "16");
-    svg.setAttribute("height", "12");
+    svg.setAttribute("height", "6");
     svg.setAttribute("fill", "currentColor");
     svg.setAttribute("class", isUpArrow ? "bi bi-arrow-bar-up" : "bi bi-arrow-bar-down");
-    svg.setAttribute("viewBox", "0 0 16 16");
+    svg.setAttribute("viewBox", "0 5 16 8");
 
     // Create and set the path element
     var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
@@ -317,7 +317,7 @@ function minimizingArrowIcon(isUpArrow) {
 
 //takes the minimizingArrow element
 //if it is up arrow it will switch to down arrow and vice verca
-//also
+//Also
 //has a line that will change the time span items (startFrom, endTo, and total)
 //to have the position value form absolute to relative
 //this is because of the position is absolute the collapse animation

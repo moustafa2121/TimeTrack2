@@ -68,6 +68,9 @@
     <Content Include="TimeTrack2_APP\static\TimeTrack2_APP\auxJS\validatorsFunctions.js" />
     <Content Include="TimeTrack2_APP\templates\base.html" />
     <Content Include="TimeTrack2_APP\templates\TimeTrack2_APP\index.html" />
+    <Content Include="TimeTrack2_APP\templates\TimeTrack2_APP\testHTML.html">
+      <SubType>Code</SubType>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="TimeTrack2\" />

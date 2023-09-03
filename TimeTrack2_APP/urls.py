@@ -12,5 +12,6 @@ urlpatterns = [
     path('delete-actionable/', views.deleteActionable, name='deleteActionable'),
     path('add-section/', views.addSection, name='addSection'),
     path('update-session/', views.updateSession, name='updateSession'),
+    path('test/', views.testView, name='testView'),
 
 ]

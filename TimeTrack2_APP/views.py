@@ -157,3 +157,6 @@ def deleteActionable(request):
             return JsonResponse({'message': 'something went wrong when deleting the actionable.'})  
     elif request.method == 'GET':
         return HttpResponseNotFound()
+
+def testView(request):
+    return render(request, "TimeTrack2_APP/testHTML.html", {})

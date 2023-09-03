@@ -100,9 +100,15 @@ function loadArchivedSessions() {
         setSessionTitle(session, titleDiv);
 
         //the parent bar of the subBars
+        const barParent = document.createElement("div");
+        barParent.style.position = "relative";
+        singleSessionDiv.appendChild(barParent);
         const barRef = document.createElementNS("http://www.w3.org/2000/svg", "svg");
         barRef.classList.add("barClass");
-        singleSessionDiv.appendChild(barRef)
+        barParent.appendChild(barRef)
+
+        //ruler for the bar
+        displayBarRuler(singleSessionDiv);
 
         const minimizingArrow = document.createElement("button");
         minimizingArrow.classList.add("minimizeActionablesButton");
@@ -112,9 +118,10 @@ function loadArchivedSessions() {
         minimizingArrow.setAttribute("data-bs-target", `#${session["pk"]}`);
         minimizingArrow.appendChild(minimizingArrowIcon(true));
         singleSessionDiv.appendChild(minimizingArrow);
-
-        //ruler for the bar
-        displayBarRuler(singleSessionDiv);
+        //event listener to hide the actionables
+        minimizingArrow.addEventListener("click", () => {
+            toggleMinimizingArrowIcon(minimizingArrow);
+        });
 
         //the container for all the actionables
         const actionablesContainer = document.createElement("div");
@@ -122,11 +129,6 @@ function loadArchivedSessions() {
         actionablesContainer.id = session["pk"];
         actionablesContainer.classList.add("show");
         singleSessionDiv.appendChild(actionablesContainer);
-
-        //event listener to hide the actionables
-        minimizingArrow.addEventListener("click", () => {
-            toggleMinimizingArrowIcon(minimizingArrow);
-        });
 
         displaySingleSession(actionablesContainer, JSON.parse(sessionActionables[1]), 1);
     }

@@ -434,70 +434,86 @@ function displayBar(barRef, passedActionable, divider = constantValues().display
     const rect = displayBar_aux(barRef, passedActionable, divider)
 
     //the parent container of a single session
-    const parentSessionsContainer = rect.closest(".singleSessionDiv").querySelector(".singleSessionActionablesContainer");
+    const parentSingleSessionActionablesContainer = rect.closest(".singleSessionDiv").querySelector(".singleSessionActionablesContainer");
 
     //the hover effect: dispalys the total of each actionable
-    rect.addEventListener("mouseenter", (event) => {
-        rect.setAttribute("style", `fill: ${passedActionable.actionableColor}; stroke-width:1; stroke:rgb(0,0,0)`);
-        const x = event.clientX;
-        const y = rect.getBoundingClientRect();
+    rect.addEventListener("mousemove", (event) => {
+        //get the baroverlay, set its parent to be the subbar's parent
         const barOverlay = document.getElementById("barOverlay");
 
-        barOverlay.style.left = `${x}px`;
-        barOverlay.style.top = (y.top - 170)+"px";
-        barOverlay.classList.add('active');
+        //only initialize at entering
+        //populates the barOverlay
+        if (!barOverlay.classList.contains("active")) {
+            barOverlay.classList.add('active');
+            rect.parentElement.parentElement.appendChild(barOverlay);
 
-        //zoom in the actionable
-        parentSessionsContainer.querySelector(`[id="${passedActionable.pk}"`).classList.add("zoomEffect");
+            //set the border of the subbar when being hovered over
+            rect.setAttribute("style", `fill: ${passedActionable.actionableColor}; stroke-width:1; stroke:rgb(0,0,0)`);
 
-        //remove the previous children
-        while (barOverlay.firstChild)
-            barOverlay.removeChild(barOverlay.firstChild);
+            //zoom-in effect on the related .singleActionableDiv
+            parentSingleSessionActionablesContainer.querySelector(`[id="${passedActionable.pk}"`).classList.add("zoomEffect");
 
-        //total time of each actionable
-        const totalTimeActionablesHolder = getNewTotalTimeActionablesHolder();
+            //remove the previous children
+            while (barOverlay.firstChild)
+                barOverlay.removeChild(barOverlay.firstChild);
 
-        //add up the total time of each actionable
-        //check if the this session has a current actionable
-        const currentActionableCheck = parentSessionsContainer.parentElement.querySelector("#currentActionableDiv");
-        if (currentActionableCheck) {
-            const actionableName = currentActionableCheck.querySelector(".singleActionableName").textContent;
-            totalTimeActionablesHolder[actionableName] = addTimeStrings(totalTimeActionablesHolder[actionableName], document.querySelector("#currentActionableOutput").textContent);
+            //total time of each actionable
+            const totalTimeActionablesHolder = getNewTotalTimeActionablesHolder();
+
+            //add up the total time of each actionable
+            //check if the this session has a current actionable
+            const currentActionableCheck = parentSingleSessionActionablesContainer.parentElement.querySelector("#currentActionableDiv");
+            if (currentActionableCheck) {
+                const actionableName = currentActionableCheck.querySelector(".singleActionableName").textContent;
+                totalTimeActionablesHolder[actionableName] = addTimeStrings(totalTimeActionablesHolder[actionableName], document.querySelector("#currentActionableOutput").textContent);
+            }
+            //all the remaining actionables
+            for (const actionableDiv of parentSingleSessionActionablesContainer.querySelectorAll(".singleActionableDiv")) {
+                const actionableNameEle = actionableDiv.querySelector(":is(.singleActionableName, .singleActionableSelect)")
+                let actionableName = "";
+                if (actionableNameEle.tagName === "SPAN")
+                    actionableName = actionableNameEle.textContent;
+                else
+                    actionableName = actionableNameEle.options[actionableNameEle.selectedIndex].text;
+
+                const actionableTotalTime = Array.from(actionableDiv.querySelector(".timeActionableDetail").querySelectorAll("span")).at(-1).textContent;
+                totalTimeActionablesHolder[actionableName] = addTimeStrings(totalTimeActionablesHolder[actionableName], actionableTotalTime);
+            }
+
+            //display title for the barOverlay
+            //const totalTextNode = document.createElement("div");
+            //totalTextNode.classList.add("title");
+            //totalTextNode.textContent = "Total/Actionable"
+            //barOverlay.appendChild(totalTextNode);
+
+            //populate the barOverLay
+            for (const [key, value] of Object.entries(totalTimeActionablesHolder)) {
+                const actionableValue = document.createElement("div");
+                actionableValue.classList.add("subElement");
+                actionableValue.textContent = value;
+                actionableValue.style.color = getActionableColor(key);
+                barOverlay.appendChild(actionableValue);
+            }
         }
-        //all the remaining actionables
-        for (const actionableDiv of parentSessionsContainer.querySelectorAll(".singleActionableDiv")) {
-            const actionableNameEle = actionableDiv.querySelector(":is(.singleActionableName, .singleActionableSelect)")
-            let actionableName = "";
-            if (actionableNameEle.tagName === "SPAN")
-                actionableName = actionableNameEle.textContent;
-            else 
-                actionableName = actionableNameEle.options[actionableNameEle.selectedIndex].text;
 
-            const actionableTotalTime = Array.from(actionableDiv.querySelector(".timeActionableDetail").querySelectorAll("span")).at(-1).textContent;
-            totalTimeActionablesHolder[actionableName] = addTimeStrings(totalTimeActionablesHolder[actionableName], actionableTotalTime);
+        //set the overlay's position for both cases of just entered or
+        //the mouse is just hovering over the subbar
+        let totalLeftSiblingsWidth = 0;
+        let prevSibling = rect.previousElementSibling;
+        while (prevSibling) {
+            totalLeftSiblingsWidth += prevSibling.getBoundingClientRect().width;
+            prevSibling = prevSibling.previousElementSibling;
         }
-
-        //display title for the barOverlay
-        const totalTextNode = document.createElement("div");
-        totalTextNode.classList.add("title");
-        totalTextNode.textContent = "Total per Actionable"
-        barOverlay.appendChild(totalTextNode);
-
-        //populate the barOverLay
-        for (const [key, value] of Object.entries(totalTimeActionablesHolder)) {
-            const actionableValue = document.createElement("div");
-            actionableValue.classList.add("subElement");
-            actionableValue.textContent = value;
-            actionableValue.setAttribute("colorvalue", getActionableColor(key))
-            barOverlay.appendChild(actionableValue);
-        }
+        totalLeftSiblingsWidth += event.clientX - rect.getBoundingClientRect().left;
+        barOverlay.style.left = (totalLeftSiblingsWidth) + "px";
+        barOverlay.style.bottom = (19) + "px";
     });
 
     //remove the zoom effect
     rect.addEventListener("mouseleave", () => {
         rect.setAttribute("style", `fill:${passedActionable.actionableColor}`);
         barOverlay.classList.remove('active');
-        parentSessionsContainer.querySelector(".zoomEffect").classList.remove("zoomEffect");;
+        parentSingleSessionActionablesContainer.querySelector(".zoomEffect").classList.remove("zoomEffect");;
     });
 }
 

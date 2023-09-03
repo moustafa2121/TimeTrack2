@@ -55,10 +55,8 @@ html {
     }
 }
 
-
 /* session display */
 .singleSessionDiv {
-    /*border: 1px solid black;*/
     margin-top: 15px;
     width: 100%;
     padding: 15px;
@@ -73,11 +71,11 @@ html {
 }
 /* the time bar of each session*/
 .barClass {
-    border: 1px solid black;
+    background-color: #efefef;
     height: 17px;
     width: 100%;
     margin: 0;
-    margin-top:15px;
+    margin-top: 15px;
     padding: 0;
 }
 .barRuler {
@@ -92,14 +90,15 @@ html {
 
 /* display the overlay on each subbar. Shows the total time of each actionable */
 #barOverlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100px;
-    height: 170px;
-    background-color: white;
+    position: absolute;
+    padding: 10px;
+    width: 9vh;
+    background-color: #f3f6f7;
     z-index: 1;
     display: none;
+    pointer-events: none;
+    border: 1px solid black;
+    border-radius:5px;
 }
 /* appears when hovering over a subbar*/
 #barOverlay.active {
@@ -108,27 +107,13 @@ html {
 /* an element (actionable) of the overlay */
 #barOverlay .subElement{
     font-size: 0.9em;
+    padding:0;
+    margin:0;
+    line-height:14px;
 }
 #barOverlay .title{
-    font-size: 0.7em;
+    font-size: 1.0em;
 }
-/* place a dot/circle before each element*/
-#barOverlay .subElement::before{
-    content: "\2022";
-    font-weight: bold; 
-    font-size:1.5em;
-    display: inline-block; /* Needed to add space between the bullet and the text */
-    width: 1em; /* Also needed for space (tweak if needed) */
-    margin-left: 0.5em; /* Also needed for space (tweak if needed) */
-}
-/* color the dots before each item */
-/* todo: change the colors*/
-#barOverlay .subElement[colorvalue="blue"]::before {color: blue;}
-#barOverlay .subElement[colorvalue="green"]::before {color: green;}
-#barOverlay .subElement[colorvalue="darkgreen"]::before {color: darkgreen;}
-#barOverlay .subElement[colorvalue="yellow"]::before {color: yellow;}
-#barOverlay .subElement[colorvalue="red"]::before {color: red;}
-#barOverlay .subElement[colorvalue="pink"]::before {color: pink;}
 
 .minimizeActionablesButton{
     width: 100%;
@@ -254,6 +239,7 @@ html {
         opacity: 0; /* At the end of the animation, the opacity will be set to 0 */
     }
 }
+
 
 
 /* navBarLeft section*/
