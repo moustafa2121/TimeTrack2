@@ -58,6 +58,12 @@ function loadCurrentSession() {
         const actionablesContainer = document.getElementsByClassName("singleSessionActionablesContainer")[0];
         displaySingleSession(actionablesContainer, currentSessionDBActionables.slice(0, currentSessionDBActionables.length - 1), 2)
 
+
+        //add the minimizing arrow
+        const tmp = document.querySelectorAll(".singleSessionDiv")[0].querySelector(".singleSessionActionablesContainer")
+        tmp.id = currentSessionHolder().startFrom;
+        document.querySelectorAll(".singleSessionDiv")[0].insertBefore(createMinimizingArrow(currentSessionHolder().startFrom), tmp);
+        
         //check if the session has expired
         //if it did, then end the session
         //the endTo value of both the session and the currentActionable
@@ -83,7 +89,7 @@ function loadArchivedSessions() {
     const sessionsList = JSON.parse(document.getElementById('allSessions').textContent);
     //iterate over each archived session
     for (const sessionActionables of sessionsList) {
-        const session = JSON.parse(sessionActionables[0])[0];
+        const givenSession = JSON.parse(sessionActionables[0])[0];
         //for all archived sessions
         //elements for a single session
         const singleSessionDiv = document.createElement("div");
@@ -97,7 +103,7 @@ function loadArchivedSessions() {
         titleDiv.style.borderBottom = "1px black solid"
         titleDiv.style.paddingBottom = "0px"
         singleSessionDiv.appendChild(titleDiv);
-        setSessionTitle(session, titleDiv);
+        setSessionTitle(givenSession, titleDiv);
 
         //the parent bar of the subBars
         const barParent = document.createElement("div");
@@ -108,30 +114,35 @@ function loadArchivedSessions() {
         barParent.appendChild(barRef)
 
         //ruler for the bar
-        displayBarRuler(singleSessionDiv);
+        displayBarRuler(singleSessionDiv, 0, 24);
 
-        const minimizingArrow = document.createElement("button");
-        minimizingArrow.classList.add("minimizeActionablesButton");
-        minimizingArrow.classList.add("btn");
-        minimizingArrow.classList.add("btn-outline-dark");
-        minimizingArrow.setAttribute("data-bs-toggle", "collapse");
-        minimizingArrow.setAttribute("data-bs-target", `#${session["pk"]}`);
-        minimizingArrow.appendChild(minimizingArrowIcon(true));
-        singleSessionDiv.appendChild(minimizingArrow);
-        //event listener to hide the actionables
-        minimizingArrow.addEventListener("click", () => {
-            toggleMinimizingArrowIcon(minimizingArrow);
-        });
+        //minimizing arrow
+        singleSessionDiv.appendChild(createMinimizingArrow(`${givenSession["pk"]}`));
 
         //the container for all the actionables
         const actionablesContainer = document.createElement("div");
         actionablesContainer.className = "singleSessionActionablesContainer";
-        actionablesContainer.id = session["pk"];
+        actionablesContainer.id = givenSession["pk"];
         actionablesContainer.classList.add("show");
         singleSessionDiv.appendChild(actionablesContainer);
 
         displaySingleSession(actionablesContainer, JSON.parse(sessionActionables[1]), 1);
     }
+}
+
+function createMinimizingArrow(givenSessionKey) {
+    const minimizingArrow = document.createElement("button");
+    minimizingArrow.classList.add("minimizeActionablesButton");
+    minimizingArrow.classList.add("btn");
+    minimizingArrow.classList.add("btn-outline-dark");
+    minimizingArrow.setAttribute("data-bs-toggle", "collapse");
+    minimizingArrow.setAttribute("data-bs-target", `#${givenSessionKey}`);
+    minimizingArrow.appendChild(minimizingArrowIcon(true));
+    //event listener to hide the actionables
+    minimizingArrow.addEventListener("click", () => {
+        toggleMinimizingArrowIcon(minimizingArrow);
+    });
+    return minimizingArrow;
 }
 
 //function that displays a single session and its actionable as per
@@ -157,16 +168,74 @@ function displaySingleSession(actionablesContainer, currentActionables, caseValu
 }
 
 //passedMaxValue is used to dynamically change for the current session
-function displayBarRuler(singleSessionDiv, passedMaxValue = constantValues().displayBarMaxValue) {
-    const barRuler = document.createElement("div");
-    const bar = singleSessionDiv.querySelector(".barClass");
-    barRuler.className = "barRuler";
-    singleSessionDiv.insertBefore(barRuler, bar.nextElementSibling);
-    for (let i = 0; i < 5; i++) {
-        const rulerLabel = document.createElement("div");
-        rulerLabel.className = "barRulerLabel";
-        const position = (i / 4) * 100;
-        rulerLabel.textContent = Math.round((position / 100) * passedMaxValue);
-        barRuler.appendChild(rulerLabel);
+//function displayBarRuler(singleSessionDiv, passedMaxValue = constantValues().displayBarMaxValue) {
+//    const barRuler = document.createElement("div");
+//    const bar = singleSessionDiv.querySelector(".barClass");
+//    barRuler.className = "barRuler";
+//    singleSessionDiv.insertBefore(barRuler, bar.nextElementSibling);
+//    for (let i = 0; i < 5; i++) {
+//        const rulerLabel = document.createElement("div");
+//        rulerLabel.className = "barRulerLabel";
+//        const position = (i / 4) * 100;
+//        rulerLabel.textContent = Math.round((position / 100) * passedMaxValue);
+//        barRuler.appendChild(rulerLabel);
+//    }
+//}
+
+function displayBarRuler(singleSessionDiv, min=0, max=6) {
+    const rulerContainer = document.createElement('div');
+    rulerContainer.classList.add("ruler");
+    singleSessionDiv.insertBefore(rulerContainer, singleSessionDiv.querySelector(".singleSessionActionablesContainer"));
+
+    // Create 5 points and labels on the ruler
+    const tread = (max - min) / 6;
+    for (let i = min; i <= max; i++) {
+        const left = ((i - 1) * 20);
+
+        // Create ruler point
+        const point = document.createElement('div');
+        point.className = 'ruler-point';
+        if (i === max)
+            point.style.left = left - 0.1 + "%";
+        else
+            point.style.left = left + "%";
+
+        rulerContainer.appendChild(point);
+
+        // Create ruler label
+        const label = document.createElement('div');
+        label.className = 'ruler-label';
+        label.style.left = left-0.2+"%";
+        label.innerText = i;
+        rulerContainer.appendChild(label);
     }
+}
+
+function divideTimeRange(minTime, maxTime) {
+    // Parse the minimum and maximum times
+    const minParts = minTime.split(':');
+    const maxParts = maxTime.split(':');
+
+    const minHours = parseInt(minParts[0]);
+    const minMinutes = parseInt(minParts[1]);
+    const maxHours = parseInt(maxParts[0]);
+    const maxMinutes = parseInt(maxParts[1]);
+
+    // Calculate the time intervals
+    const timeIntervals = [];
+
+    // Calculate the step size
+    const totalMinutes = (maxHours * 60 + maxMinutes) - (minHours * 60 + minMinutes);
+    const stepSize = totalMinutes / 4;
+
+    // Generate the time intervals
+    for (let i = 0; i < 5; i++) {
+        const totalMinutesInInterval = minMinutes + i * stepSize;
+        const hoursInInterval = Math.floor(totalMinutesInInterval / 60);
+        const minutesInInterval = totalMinutesInInterval % 60;
+        const formattedTime = `${String(hoursInInterval).padStart(2, '0')}:${String(minutesInInterval).padStart(2, '0')}`;
+        timeIntervals.push(formattedTime);
+    }
+
+    return [minTime, ...timeIntervals, maxTime];
 }

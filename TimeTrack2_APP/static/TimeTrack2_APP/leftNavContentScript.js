@@ -64,12 +64,19 @@ function displaySection(passedSection) {
 
     //adding the collapseButton for section collapse
     const collapseButton = document.createElement("button");
-    collapseButton.textContent = ">";
+    collapseButton.appendChild(createArrowRightIcon());
+
     collapseButton.classList.add("collapseButton");
     collapseButton.title = "Collapse this section"
     collapseButton.setAttribute("data-bs-toggle", "collapse");
     collapseButton.setAttribute("data-bs-target", `#sectionChildren_${sectionedLayer}`);
     sectionContainerInd.appendChild(collapseButton);
+    //set up the rotating icon
+    toggleRotateArrow(collapseButton.querySelector("svg"));
+    collapseButton.addEventListener("click", () => {
+        if (collapseButton.closest(".sectionContainer").querySelectorAll("div")[1].querySelector("div"))
+            toggleRotateArrow(collapseButton.querySelector("svg"));
+    });
 
     //set the content for the section (i.e. the name)
     const content = document.createElement("span");
@@ -103,7 +110,7 @@ function displaySection(passedSection) {
         const parentSectionChildrenContainerID = "sectionChildren_" + parentSectionedLayer.join(".");
         const parentSectionChildrenContainer = document.getElementById(parentSectionChildrenContainerID);
         //ensures the display matches the parent's collapse button
-        sectionContainer.style.display = (parentSectionChildrenContainer.parentNode.querySelector(".sectionContainerInd button").textContent === ">") ? "block" : "none";
+        sectionContainer.style.display = (parentSectionChildrenContainer.parentNode.querySelector(".sectionContainerInd button").classList.contains("collapsed")) ? "none" : "block";
         parentSectionChildrenContainer.appendChild(sectionContainer);
 
         sectionContainer.style.marginLeft = 12 + "px";;

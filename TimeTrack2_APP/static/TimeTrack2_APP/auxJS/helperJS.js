@@ -218,9 +218,29 @@ function enableDeleteButton(parentObject, enable) {
         currentSecondChild.querySelector("button").classList.toggle("sessionFadedButton", enable);
 }
 
+
+//given an actionable name, return the color
+//this is temporary until we produce new favicons
+function getActionableColor_old(actionableName) {
+    if (actionableName === "Working")
+        return "blue";
+    else if (actionableName === "Break")
+        return "green";
+    else if (actionableName === "Natural Break")
+        return "Darkgreen";
+    else if (actionableName === "Interrupted")
+        return "Yellow";
+    else if (actionableName === "Wasted")
+        return "red";
+    else if (actionableName === "Sleep")
+        return "pink";
+    else
+        return "white";
+}
+
 /* utility functions */
 
-//sets the title of the sessiona and their display
+//sets the title of the session and their display
 function setSessionTitle(session, titleParent) {
     const startFrom = session["pk"];
     const endTo = session["fields"].endTo;
@@ -314,6 +334,40 @@ function minimizingArrowIcon(isUpArrow) {
     svg.appendChild(path);
     return svg;
 }
+
+//creates and returns the icon for the collapse button of the sections
+function createArrowRightIcon() {
+    // Create the SVG element
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    svg.setAttribute("width", "16");
+    svg.setAttribute("height", "16");
+    svg.setAttribute("fill", "currentColor");
+    svg.setAttribute("class", "bi bi-caret-right-fill");
+    svg.setAttribute("viewBox", "0 0 16 16");
+
+    // Create the path element
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("fill-rule", "evenodd");
+    path.setAttribute("d", "m12.14 8.753-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z");
+
+    // Append the path element to the SVG element
+    svg.appendChild(path);
+    svg.style.opacity = "0.5";
+    svg.style.scale = "0.6";
+
+    // Return the created SVG element
+    return svg;
+}
+//toggles the arrows of collapsing/uncollapsing of sections
+function toggleRotateArrow(svg) {
+    const currentTransform = svg.style.transform;
+    if (currentTransform === 'rotate(45deg)')
+        svg.style.transform = 'none';
+    else
+        svg.style.transform = 'rotate(45deg)';
+}
+
 
 //takes the minimizingArrow element
 //if it is up arrow it will switch to down arrow and vice verca

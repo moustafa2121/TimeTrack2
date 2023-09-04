@@ -31,7 +31,7 @@
 <div style="display:none" class="singleSessionDiv rounded shadow-sm">
     <div id="currentActionableDiv"></div>
     <div style="position:relative"><svg class="barClass"></svg></div>
-    <div class="singleSessionActionablesContainer"></div>
+    <div class="singleSessionActionablesContainer show"></div>
 </div>
 <div id="archivedSessions"></div>
 {% endblock mainBodyContent%}
@@ -43,25 +43,23 @@
 {{sections|json_script:"sectionsJson"}}
 
 <!-- list of sections -->
-<div class=" p-3" id="sections">
-    <span id="sectionsTitle">
-        <span class="fs-5 fw-semibold">Sections</span>
-    </span>
-    <div id="addSectionForm">
+<div class="pt-4" id="sections">
+    <p class="fs-5 fw-semibold" id="sectionsTitle">Sections</p>
+    <div class="" id="addSectionForm">
         <p style="height:10px;margin:0px" id="addSectionFormTitle">formTitle</p>
         <form method="post" action="/" onsubmit="return saveSection(event)">
             {% csrf_token %}
             {{sectionForm.as_p}}
             <input type="hidden" style="display:none" id="addSectionFormParent" name="addSectionFormParent" value="unAcceptableValue" />
-            <button type="submit">Add</button>
+            <button class="btn btn-light" type="submit">Add</button>
         </form>
     </div>
+    <button style="display:none" id="totalButtonReset">Reset</button>
 </div>
 <p class="border-top border-2 my-3"></p>
-<span>
-    <span class="p-3 fs-5 fw-semibold">Tasks</span>
-</span>
-<button style="display:none" id="totalButtonReset">Reset</button>
+<div id="tasksDiv">
+    <p class="fs-5 fw-semibold">Tasks</p>
+</div>
 {% endblock leftNavContent%}
 
 

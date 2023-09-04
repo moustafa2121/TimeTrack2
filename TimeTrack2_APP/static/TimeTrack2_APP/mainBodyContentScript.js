@@ -33,6 +33,11 @@ function startSession(){
         buttonEndingSession().button.click();
     }, currentSessionHolder().sessionExpiredValue())
 
+    //add the minimize button
+    const tmp = document.querySelectorAll(".singleSessionDiv")[0].querySelector(".singleSessionActionablesContainer")
+    tmp.id = currentSessionHolder().startFrom;
+    document.querySelectorAll(".singleSessionDiv")[0].insertBefore(createMinimizingArrow(currentSessionHolder().startFrom), tmp);
+
     //disabled the actionable buttons - until the session is finished saving
     enableActionableButtons(false);
     //save the new session and return a fetch
@@ -235,7 +240,7 @@ function displayCurrentActionable() {
 
     //modify the favicon    
     const faviconLink = document.querySelector("link[rel~='icon']");
-    //faviconLink.href = faviconLink.href.replace(/\/[^/]+\.ico$/, `/${currentActionableHolder().actionableColor}.ico`)
+    faviconLink.href = faviconLink.href.replace(/\/[^/]+\.ico$/, `/${getActionableColor_old(currentActionableHolder().actionableName)}.ico`)
 
     //singleActionableDiv
     const singleActionableDiv = document.createElement("div");
@@ -525,7 +530,7 @@ function displayBar_aux(parentBar, passedActionable, divider) {
     //subBar element
     const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
     rect.setAttribute("width", `${width}%`);
-    rect.setAttribute("height", "16px");
+    rect.setAttribute("height", "17px");
     rect.setAttribute("style", `fill:${passedActionable.actionableColor}`);
     rect.classList.add("subBarClass");
     rect.id = "subBar_" + passedActionable.pk;
