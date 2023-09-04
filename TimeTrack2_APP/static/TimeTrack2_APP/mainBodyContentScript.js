@@ -236,7 +236,7 @@ function displayCurrentActionable() {
 
     //display the bar ruler if it is not already displayed
     if (!parentObject.parentElement.querySelector(".barClass").firstChild)
-        displayBarRuler(parentObject.parentElement);
+        displayBarRuler(parentObject, timestampToHHMM(currentSessionHolder().startFrom));
 
     //modify the favicon    
     const faviconLink = document.querySelector("link[rel~='icon']");
@@ -434,9 +434,9 @@ function displayActionable(passedActionable, parentObject, caseValue) {
 //displays the subBar of the actionable on the progress bar of the session
 //also sets up the hovering effect on the subBar
 //the divider is currently just for testing (its in hours)
-function displayBar(barRef, passedActionable, divider = constantValues().displayBarMaxValue) {
+function displayBar(barRef, passedActionable) {
     //handles the graphics of the subBar
-    const rect = displayBar_aux(barRef, passedActionable, divider)
+    const rect = displayBar_aux(barRef, passedActionable)
 
     //the parent container of a single session
     const parentSingleSessionActionablesContainer = rect.closest(".singleSessionDiv").querySelector(".singleSessionActionablesContainer");
@@ -523,9 +523,9 @@ function displayBar(barRef, passedActionable, divider = constantValues().display
 }
 
 //handles the display of the subBar's graphics
-function displayBar_aux(parentBar, passedActionable, divider) {
+function displayBar_aux(parentBar, passedActionable, numberOfHoursToShow=constantValues().totalBarHours) {
     const currentSecondsAsPercentage = Math.ceil((passedActionable.endTo - passedActionable.startFrom) / 1000) * 100;
-    const width = currentSecondsAsPercentage / (divider * 3600);
+    const width = currentSecondsAsPercentage / (numberOfHoursToShow * 3600);
 
     //subBar element
     const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");

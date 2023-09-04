@@ -1,14 +1,23 @@
 //constants
 const constantValues = (function () {
-    //const secondsInDay = 86400;
-    const secondsInDay = 86400 /2;
-    const displayBarMaxValue = secondsInDay / 3600;
+    //total hours displayed in the barClass, 24 hours by default
+    const totalBarHours = 24;
+    //total time per session, 24 hours by default
     const maxSessionSeconds = 24 * 3600;
+    //if false it displays the time from min to max
+    //if true, it will start from the session's starting time
+    //till a max of +24 hours from start
+    const displaySessionDuration = true;
+    //the min and max of the starting/end point of the bar
+    const minBarHours = "00:00";
+    const maxBarHours = "24:00";
     return function () {
         return {
-            secondsInDay: secondsInDay,
-            displayBarMaxValue: displayBarMaxValue,
+            totalBarHours: totalBarHours,
+            minBarHours: minBarHours,
+            maxBarHours: maxBarHours,
             maxSessionSeconds: maxSessionSeconds,
+            displaySessionDuration: displaySessionDuration,
         }
     }
 })();
@@ -47,7 +56,6 @@ function addFadingMessage(message, interval = 4000) {
     });
 }
 
--
 /* time format functions */
 
 //takes epoch
@@ -402,4 +410,103 @@ function escapeSpaceWithBackslashes(inputString) {
 
 function escapePeriodWithBackslashes(inputString) {
     return inputString.replace(/\./g, '\\.');
+}
+
+
+//used by the ruler for the barClass
+//it takes two arguments in the format "hh:mm"
+//and optional divideValue
+//returns time intervals between the two arguments as a labels for the ruler
+function divideTimeRange(minTime, maxTime, divideValue = 6) {
+    const minTotalMin = parseInt(minTime.split(':')[0]) * 60 + parseInt(minTime.split(':')[1]);
+
+    const timeIntervals = [];
+    const totalMinutes = calculateTimeDifference(minTime, maxTime);
+    const stepSize = totalMinutes / (divideValue - 1);
+
+    // Generate the time intervals
+    for (let i = 0; i < divideValue; i++) {
+        // Calculate the total minutes in the interval, taking modulo 1440 for 24 hours
+        const totalMinutesInInterval = (minTotalMin + i * stepSize) % 1440;
+
+        // Calculate hours and minutes
+        const hoursInInterval = Math.floor(totalMinutesInInterval / 60);
+        const minutesInInterval = totalMinutesInInterval % 60;
+
+        const formattedTime = `${String(hoursInInterval).padStart(2, '0')}:${String(minutesInInterval).padStart(2, '0')}`;
+        timeIntervals.push(formattedTime);
+    }
+    return timeIntervals;
+}
+
+//takes two arguments of type "hh:mm"
+//returns the total minutes between them
+//time range should not exceed 23:59 between the two arguments
+//if endTime is given as -1 it will just assume that the duration is 
+//24 hours (by default)
+function calculateTimeDifference(startTime, endTime=-1) {
+    // Parse the start and end times
+    const startParts = startTime.split(':');
+    const startHours = parseInt(startParts[0]);
+    const startMinutes = parseInt(startParts[1]);
+
+    let endHours, endMinutes;
+
+    // Check if endTime is -1, and if so, assume 24 hours after startTime
+    if (endTime === -1) {
+        endHours = startHours + constantValues().totalBarHours;
+        endMinutes = startMinutes;
+    } else {
+        const endParts = endTime.split(':');
+        endHours = parseInt(endParts[0]);
+        endMinutes = parseInt(endParts[1]);
+    }
+
+    // Calculate the time difference in minutes
+    let minutesDifference = (endHours * 60 + endMinutes) - (startHours * 60 + startMinutes);
+
+    // Adjust for negative differences (crossing midnight)
+    if (minutesDifference < 0) {
+        minutesDifference += 24 * 60; // Add 24 hours in minutes
+    }
+    return minutesDifference;
+}
+
+//reduce the given time in the "hh:mm" format by one minute
+//used by the ruler
+function reduceTimeByOneMinute(time) {
+    if (time === '00:00') {
+        return '23:59';
+    }
+
+    const [hours, minutes] = time.split(':');
+    let reducedHours = parseInt(hours);
+    let reducedMinutes = parseInt(minutes);
+
+    if (reducedMinutes > 0) {
+        reducedMinutes--;
+    } else {
+        if (reducedHours > 0) {
+            reducedHours--;
+            reducedMinutes = 59;
+        } else {
+            // Time cannot go below 00:00
+            return '00:00';
+        }
+    }
+
+    // Format the reduced time
+    const formattedHours = String(reducedHours).padStart(2, '0');
+    const formattedMinutes = String(reducedMinutes).padStart(2, '0');
+
+    return `${formattedHours}:${formattedMinutes}`;
+}
+
+//takes an epoch
+//returns "hh:mm"
+function timestampToHHMM(epochMilliseconds) {
+    const date = new Date(epochMilliseconds);
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
 }

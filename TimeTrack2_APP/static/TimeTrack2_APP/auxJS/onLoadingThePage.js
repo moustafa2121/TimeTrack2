@@ -114,7 +114,7 @@ function loadArchivedSessions() {
         barParent.appendChild(barRef)
 
         //ruler for the bar
-        displayBarRuler(singleSessionDiv, 0, 24);
+        displayBarRuler(singleSessionDiv, timestampToHHMM(parseInt(givenSession["pk"])));
 
         //minimizing arrow
         singleSessionDiv.appendChild(createMinimizingArrow(`${givenSession["pk"]}`));
@@ -167,35 +167,30 @@ function displaySingleSession(actionablesContainer, currentActionables, caseValu
     }
 }
 
-//passedMaxValue is used to dynamically change for the current session
-//function displayBarRuler(singleSessionDiv, passedMaxValue = constantValues().displayBarMaxValue) {
-//    const barRuler = document.createElement("div");
-//    const bar = singleSessionDiv.querySelector(".barClass");
-//    barRuler.className = "barRuler";
-//    singleSessionDiv.insertBefore(barRuler, bar.nextElementSibling);
-//    for (let i = 0; i < 5; i++) {
-//        const rulerLabel = document.createElement("div");
-//        rulerLabel.className = "barRulerLabel";
-//        const position = (i / 4) * 100;
-//        rulerLabel.textContent = Math.round((position / 100) * passedMaxValue);
-//        barRuler.appendChild(rulerLabel);
-//    }
-//}
-
-function displayBarRuler(singleSessionDiv, min=0, max=6) {
+//displays the bar ruler from the min to max
+//if displaySessionDuration is true it will display
+//the time ruler from the start of the session as min
+//and +24 hours as max
+function displayBarRuler(singleSessionDiv, sessionStartFrom,
+                        min = constantValues().minBarHours,
+                        max = constantValues().maxBarHours, steps = 7) {
     const rulerContainer = document.createElement('div');
     rulerContainer.classList.add("ruler");
     singleSessionDiv.insertBefore(rulerContainer, singleSessionDiv.querySelector(".singleSessionActionablesContainer"));
+    if (constantValues().displaySessionDuration) {
+        min = sessionStartFrom;
+        max = -1;
+    }
 
-    // Create 5 points and labels on the ruler
-    const tread = (max - min) / 6;
-    for (let i = min; i <= max; i++) {
-        const left = ((i - 1) * 20);
+    const labelsValues = divideTimeRange(min, max, steps);
+    const percentageStep = 100 / (steps-1);
+    for (let i = 0; i < steps; i++) {
+        const left = i * percentageStep;
 
         // Create ruler point
         const point = document.createElement('div');
         point.className = 'ruler-point';
-        if (i === max)
+        if (i === steps-1)
             point.style.left = left - 0.1 + "%";
         else
             point.style.left = left + "%";
@@ -205,37 +200,11 @@ function displayBarRuler(singleSessionDiv, min=0, max=6) {
         // Create ruler label
         const label = document.createElement('div');
         label.className = 'ruler-label';
-        label.style.left = left-0.2+"%";
-        label.innerText = i;
+        label.style.left = left - 1.0 + "%";
+        if (i === steps-1)
+            label.innerText = reduceTimeByOneMinute(labelsValues[i]);
+        else
+            label.innerText = labelsValues[i];
         rulerContainer.appendChild(label);
     }
-}
-
-function divideTimeRange(minTime, maxTime) {
-    // Parse the minimum and maximum times
-    const minParts = minTime.split(':');
-    const maxParts = maxTime.split(':');
-
-    const minHours = parseInt(minParts[0]);
-    const minMinutes = parseInt(minParts[1]);
-    const maxHours = parseInt(maxParts[0]);
-    const maxMinutes = parseInt(maxParts[1]);
-
-    // Calculate the time intervals
-    const timeIntervals = [];
-
-    // Calculate the step size
-    const totalMinutes = (maxHours * 60 + maxMinutes) - (minHours * 60 + minMinutes);
-    const stepSize = totalMinutes / 4;
-
-    // Generate the time intervals
-    for (let i = 0; i < 5; i++) {
-        const totalMinutesInInterval = minMinutes + i * stepSize;
-        const hoursInInterval = Math.floor(totalMinutesInInterval / 60);
-        const minutesInInterval = totalMinutesInInterval % 60;
-        const formattedTime = `${String(hoursInInterval).padStart(2, '0')}:${String(minutesInInterval).padStart(2, '0')}`;
-        timeIntervals.push(formattedTime);
-    }
-
-    return [minTime, ...timeIntervals, maxTime];
 }
