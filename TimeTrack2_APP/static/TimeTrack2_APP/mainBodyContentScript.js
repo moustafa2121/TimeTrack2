@@ -1,3 +1,21 @@
+/*
+was in the base.html
+<!-- https://django-allauth.readthedocs.io/en/latest/views.html#login-account-login -->
+<!--{% load socialaccount %}
+<html>
+<body>
+
+    <h1>My Google OAuth Project </h1>
+    {% if user.is_authenticated %}
+        <p>Welcome, You are logged in as {{ user.username }}</p>
+    {% else %}
+        <a href="{% provider_login_url 'google' %}">Login With Google</a>
+    {% endif %}
+</body>
+</html>-->
+*/
+
+
 //starting and ending the actionable timer
 const timerIntervalRef = (function () {
     let timerIntervalRef_;
