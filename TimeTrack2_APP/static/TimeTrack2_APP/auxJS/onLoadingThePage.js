@@ -204,7 +204,7 @@ function displayBarRuler(singleSessionDiv, sessionStartFrom,
         // Create ruler label
         const label = document.createElement('div');
         label.className = 'ruler-label';
-        label.style.left = left - 1.0 + "%";
+        label.style.left = left - 1.5 + "%";
         if (i === steps-1)
             label.innerText = reduceTimeByOneMinute(labelsValues[i]);
         else

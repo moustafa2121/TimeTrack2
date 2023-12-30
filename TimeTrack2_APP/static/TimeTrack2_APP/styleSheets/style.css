@@ -88,6 +88,9 @@ main {
     pointer-events: none; /* disable click events */
 }
 
+#currentActionableDiv {
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.2), 0px 2px 2px 0px rgba(0, 0, 0, 0.19);
+}
 /* session display */
 .singleSessionDiv {
     margin-top: 15px;
@@ -146,6 +149,7 @@ main {
     pointer-events: none;
     border: 1px solid black;
     border-radius:5px;
+    width:8vw;
 }
 /* appears when hovering over a subbar*/
 #barOverlay.active {
@@ -181,7 +185,6 @@ main {
     max-height: 50vh;
     overflow-y: scroll;
 }
-
 .singleSessionActionablesContainer li:nth-child(odd) {
     background-color: #f0f0f0; 
 }
@@ -200,7 +203,7 @@ main {
 .singleActionableDiv *{
     height: inherit;
     max-height: inherit;
-    font-size: 3.0vmin !important;
+    font-size: 2.5vmin !important;
 
     font-family: Helvetica, Arial, Georgia, Tahoma and Roboto !important;
 }
@@ -220,10 +223,11 @@ main {
 .singleActionableDiv .singleActionableName, 
 .singleActionableDiv .singleActionableSection, 
 .singleActionableDiv .singleActionableSelect, 
-.singleActionableDiv .singleSectionSelect {
+.singleActionableDiv .singleSectionSelect{
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+    box-sizing:border-box !important;
 }
 
 .singleActionableDiv select{
@@ -260,7 +264,7 @@ main {
     border-bottom: 1px solid black;
 }
 .singleActionableDiv .singleActionableDetails {
-    align-content:center;
+    padding-top:5px;
 }
 .singleActionableDiv .timeActionableDetail {
     text-align: center;
