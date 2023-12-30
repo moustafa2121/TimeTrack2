@@ -357,22 +357,22 @@ function displayActionable(passedActionable, parentObject, caseValue) {
     displayBar(barRef, passedActionable);
     
     //the parent of a single actionable
-    const singleActionableDiv = document.createElement("div");
-    singleActionableDiv.classList.add("singleActionableDiv");
-    singleActionableDiv.id = passedActionable.pk;
+    const singleActionableLi = document.createElement("li");
+    singleActionableLi.classList.add("singleActionableDiv");
+    singleActionableLi.id = passedActionable.pk;
     //if the parent has a child, add the child in a stacking order (on top)
     if (parentObject.firstChild)
-        parentObject.insertBefore(singleActionableDiv, parentObject.firstChild);
+        parentObject.insertBefore(singleActionableLi, parentObject.firstChild);
     else//else, add the child directly
-        parentObject.appendChild(singleActionableDiv)
+        parentObject.appendChild(singleActionableLi)
     
     //display the first part of the actionable
-    displayActionable_firstPart(passedActionable, singleActionableDiv, caseValue);
+    displayActionable_firstPart(passedActionable, singleActionableLi, caseValue);
         
     //time span is a span that holds the start, end and the total time of the actionable
     const timeSpan = document.createElement("span")
     timeSpan.classList.add("timeActionableDetail");
-    singleActionableDiv.appendChild(timeSpan);
+    singleActionableLi.appendChild(timeSpan);
 
     //startFrom value
     initializeActionableTimeField(timeSpan, "startFrom", passedActionable.startFrom, caseValue);

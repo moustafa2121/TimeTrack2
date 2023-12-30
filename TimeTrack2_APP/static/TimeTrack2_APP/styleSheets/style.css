@@ -1,33 +1,40 @@
-html {
-    width: 100%;
-}
 * {
     font-family: system-ui, serif;
 }
+body{
+    display:grid;
+    /* top navbar the rest of the body*/
+    grid-template-rows:6vh 94vh;
+    padding:0;
+}
 /* navBarTop section*/
-.navbar{
-    height:40px;
+.navbar {
+    height: 6vh;
+    margin: 0;
+    padding: 0;
 }
-.navbar .container-fluid {
-    justify-content:normal;
+
+main {
+    display: grid;
+    /*the left section side, empty element, and the main body*/
+    grid-template-columns: 15vw 85vw;
+    padding: 0;
+    position: relative;
 }
+
 
 /* mainBodyRight section*/
 #mainBodyRight {
-    background-color: #FAFAFA;
-    top: 40px;
     padding: 15px;
     padding-top: 50px;
-    min-height: calc(100vh - 40px);
-    background-color: #f4f5f6;
 }
 #currentSessionDiv {
     display: inline-block;
     text-align: center;
 }
 .sessionFadedButton {
-    opacity: 0.5; /* Faded-out appearance */
-    pointer-events: none; /* Disable click events */
+    opacity: 0.5;
+    pointer-events: none; /* disable click events */
 }
 
 /* actionable buttons*/
@@ -43,16 +50,6 @@ html {
 }
 #actionableButtonsDiv {
     display: inline-block;
-}
-
-@media only screen and (max-width: 1000px) {
-    .actionableButton {
-        width: 50px;
-        height: 25px;
-        border: none;
-        overflow: hidden;
-        text-indent: -9999px;
-    }
 }
 
 /* session display */
@@ -142,36 +139,56 @@ html {
     vertical-align:top;
 }
 
+.singleSessionActionablesContainer {
+    padding: 0;
+    margin-top: 10px;
+    max-height: 50vh;
+    overflow-y: scroll;
+}
+
+.singleSessionActionablesContainer li:nth-child(odd) {
+    background-color: #f0f0f0; 
+}
+.singleSessionActionablesContainer li:nth-child(even) {
+    background-color: #e6e6e6;
+}
+
 .singleActionableDiv {
-    border: 1px solid black;
-    margin-top: 2px;
-    margin-bottom: 2px;
-    width: 100%;
     display: grid;
-    grid-template-columns: 1% 12% 12% 40% 35%;
-    align-items: center;
+    grid-template-columns: 8px 15% 18% auto 35%;
+    height: 5vh;
+    max-height: 5vh;
+    margin:3px 0 0 0;
+}
+/* limit the height of all children */
+.singleActionableDiv *{
+    height: inherit;
+    max-height: inherit;
+    font-size: 3.0vmin !important;
 }
 .singleActionableDiv.zoomEffect{ 
     transform: scale(1.02);
 }
-
 .singleActionableDiv .singleActionableColor {
-    width: 10px;
-    height: 100%;
+    width: 8px;
     display: inline-block;
 }
-.singleActionableDiv .singleActionableName {
-    padding-left:10px;
+.singleActionableDiv .singleActionableName,
+.singleActionableDiv .singleActionableSelect {
+    padding-left: 0px;
+    margin: 0 5px 0 3px;
 }
-.singleActionableDiv .singleActionableName, .singleActionableDiv .singleActionableSection, .singleActionableDiv .singleActionableSelect, .singleActionableDiv .singleSectionSelect {
-    margin-left: 10px;
-    margin-right: 10px;
+/* handle text overflow of several singleActionableDiv elements */
+.singleActionableDiv .singleActionableName, 
+.singleActionableDiv .singleActionableSection, 
+.singleActionableDiv .singleActionableSelect, 
+.singleActionableDiv .singleSectionSelect {
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
 }
 
-.singleActionableDiv select {
+.singleActionableDiv select{
     background-color: transparent;
     border: none;
     padding: 0;
@@ -194,7 +211,6 @@ html {
     box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25); /* Add a focus border */
 }
 
-
 .singleActionableDiv input{
     height:80%;
     border:none;
@@ -210,21 +226,15 @@ html {
 }
 .singleActionableDiv .timeActionableDetail {
     text-align: center;
-    position: absolute;
-    right: 7%;
+    position:relative;
+    right: 1px;
 }
-.singleActionableDiv .timeActionableDetail:has(input){
-    position: relative !important;
-    right: -1%;
-}
-.singleActionableDiv .timeActionableDetail span, .singleActionableDiv .timeActionableDetail input {
+.singleActionableDiv .timeActionableDetail span,
+.singleActionableDiv .timeActionableDetail input {
     font-size: 1em;
     font-family: "Roboto" !important;
     text-align: center;
-    margin-left: 10px;
-    margin-right: 10px;
-}
-.singleActionableDiv .timeActionableDetail input {
+    margin: 0 5px 0 5px;
     width:18%;
 }
 .singleActionableDiv .actionableDeleteButton {
@@ -256,70 +266,3 @@ html {
         opacity: 0; /* At the end of the animation, the opacity will be set to 0 */
     }
 }
-
-
-
-/* navBarLeft section*/
-#navBarLeft {
-    background-color: #E7E9EB;
-    height: 100vh;
-    position: sticky;
-    top: 40px;
-    padding: 0 !important;
-}
-#navBarLeft p {
-    text-align:center;
-}
-#navBarLeft .sectionContainer{
-    margin: 0px;
-    padding: 0;
-}
-
-#navBarLeft .sectionContainerInd {
-    display: flex;
-    align-items: center;
-}
-#navBarLeft .sectionContainerInd span{
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    flex-grow: 1;
-
-    font-size:13px;
-    text-decoration:underline;    
-}
-#navBarLeft .sectionContainerInd:hover{
-    background-color:lightgray;
-    cursor:pointer;
-}
-#navBarLeft .sectionContainerInd:has(.spanSelected){
-    background:lightgray;
-}
-
-.addSectionButton, .collapseButton {
-    line-height: 5px;
-    width: 5px;
-    text-align: left;
-    border: none;
-    background: none;
-    margin-right: 12px;
-    cursor: pointer;
-}
-
-#navBarLeft #addSectionForm {
-    position: relative;
-    position: fixed;
-    border: 1px solid black;
-    display: none;
-    left: 0;
-    top: 0;
-    background-color: #E7E9EB;
-    z-index:11;
-}
-#navBarLeft #addSectionForm input[type="text"]{
-    width:100px;    
-}
-#navBarLeft #addSectionForm button{
-    float:right;
-}
-

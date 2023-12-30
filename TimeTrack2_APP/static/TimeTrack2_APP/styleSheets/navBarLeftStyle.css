@@ -1,0 +1,60 @@
+/* navBarLeft section*/
+#navBarLeft {
+    background-color: #E7E9EB;
+    margin: 0;
+    padding:8vh 0 0 0;
+    position: fixed;
+    top: 0;
+    width:15vw;
+    height:100vh;
+    overflow:scroll;
+}
+
+#navBarLeft p {
+    text-align: center;
+}
+#navBarLeft .sectionContainerInd {
+    display: flex;
+    align-items: center;
+}
+#navBarLeft .sectionContainerInd span {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    flex-grow: 1;
+    font-size: 13px;
+    text-decoration: underline;
+}
+
+#navBarLeft .sectionContainerInd:hover, #navBarLeft .sectionContainerInd:has(.spanSelected) {
+    background-color: lightgray;
+    cursor: pointer;
+}
+
+.addSectionButton, .collapseButton {
+    line-height: 5px;
+    width: 5px;
+    text-align: left;
+    border: none;
+    background: none;
+    margin-right: 12px;
+    cursor: pointer;
+}
+
+#navBarLeft #addSectionForm {
+    position: relative;
+    position: fixed;
+    border: 1px solid black;
+    display: none;
+    left: 0;
+    top: 0;
+    background-color: #E7E9EB;
+    z-index: 11;
+}
+
+#navBarLeft #addSectionForm input[type="text"] {
+    width: 100px;
+}
+#navBarLeft #addSectionForm button {
+    float: right;
+}

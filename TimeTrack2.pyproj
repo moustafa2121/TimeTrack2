@@ -63,6 +63,7 @@
     <Content Include="TimeTrack2_APP\static\TimeTrack2_APP\leftNavContentScript.js" />
     <Content Include="TimeTrack2_APP\static\TimeTrack2_APP\mainBodyContentScript.js" />
     <Content Include="TimeTrack2_APP\static\TimeTrack2_APP\auxJS\onLoadingThePage.js" />
+    <Content Include="TimeTrack2_APP\static\TimeTrack2_APP\styleSheets\navBarLeftStyle.css" />
     <Content Include="TimeTrack2_APP\static\TimeTrack2_APP\styleSheets\style.css" />
     <Content Include="TimeTrack2_APP\static\TimeTrack2_APP\auxJS\testFiles.js" />
     <Content Include="TimeTrack2_APP\static\TimeTrack2_APP\auxJS\validatorsFunctions.js" />

@@ -9,31 +9,34 @@
 
 <!-- responseMessage -->
 <div id="messagesContainer"></div>
-
-<div style="align-content:center; margin-top:25px" class="container-fluid">
-    <div class="row">
-        <!--actionable buttons-->
-        <div class="col-8" id="actionableButtonsDiv">
-            {% for i in actionablesChoices %}
-            <button class="actionableButton btn" id="actionable_{{i.name}}" style="color:{{i.color}}; border-color:{{i.color}}">{{i.name}}</button>
-            {% endfor %}
-        </div>
-        <div class="col-4" id="currentSessionDiv">
-            <a id="totalSessionTimeOutput"></a>
-            <button style="float:right" id="buttonEndSession" class="sessionFadedButton btn btn-outline-dark"> End Session</button>
-        </div>
-    </div>
-</div>
-
+<!-- bar overaly, appears when hovering over display bar of the total time -->
 <div id="barOverlay"></div>
 
+<!-- actionables  -->
+<section>
+    <!--actionable buttons-->
+    <div id="actionableButtonsDiv">
+        {% for i in actionablesChoices %}
+        <button class="actionableButton btn" id="actionable_{{i.name}}" style="color:{{i.color}}; border-color:{{i.color}}">{{i.name}}</button>
+        {% endfor %}
+    </div>
+    <!-- current session's total time and end button -->
+    <div id="currentSessionDiv">
+        <a id="totalSessionTimeOutput"></a>
+        <button style="float:right" id="buttonEndSession" class="sessionFadedButton btn btn-outline-dark"> End Session</button>
+    </div>
+</section>
+
 <!-- current session -->
-<div style="display:none" class="singleSessionDiv rounded shadow-sm">
+<article style="display:none" class="singleSessionDiv rounded shadow-sm">
     <div id="currentActionableDiv"></div>
     <div style="position:relative"><svg class="barClass"></svg></div>
-    <div class="singleSessionActionablesContainer show"></div>
-</div>
-<div id="archivedSessions"></div>
+    <ul class="singleSessionActionablesContainer show"></ul>
+</article>
+
+<!-- archives sessions -->
+<section id="archivedSessions"></section>
+
 {% endblock mainBodyContent%}
 
 <!-- left nav panel, contains sections -->
@@ -43,9 +46,9 @@
 {{sections|json_script:"sectionsJson"}}
 
 <!-- list of sections -->
-<div class="pt-4" id="sections">
-    <p class="fs-5 fw-semibold" id="sectionsTitle">Sections</p>
-    <div class="" id="addSectionForm">
+<article id="sections">
+    <p class="fs-5 fw-semibold " id="sectionsTitle">Sections</p>
+    <div id="addSectionForm">
         <p style="height:10px;margin:0px" id="addSectionFormTitle">formTitle</p>
         <form method="post" action="/" onsubmit="return saveSection(event)">
             {% csrf_token %}
@@ -55,11 +58,11 @@
         </form>
     </div>
     <button style="display:none" id="totalButtonReset">Reset</button>
-</div>
-<p class="border-top border-2 my-3"></p>
-<div id="tasksDiv">
+</article>
+<hr />
+<article id="tasksDiv">
     <p class="fs-5 fw-semibold">Tasks</p>
-</div>
+</article>
 {% endblock leftNavContent%}
 
 

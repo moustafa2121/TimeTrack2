@@ -92,7 +92,7 @@ function loadArchivedSessions() {
         const givenSession = JSON.parse(sessionActionables[0])[0];
         //for all archived sessions
         //elements for a single session
-        const singleSessionDiv = document.createElement("div");
+        const singleSessionDiv = document.createElement("article");
         singleSessionDiv.classList.add("singleSessionDiv");
         singleSessionDiv.classList.add("rounded");
         singleSessionDiv.classList.add("shadow-sm");
@@ -120,7 +120,7 @@ function loadArchivedSessions() {
         singleSessionDiv.appendChild(createMinimizingArrow(`${givenSession["pk"]}`));
 
         //the container for all the actionables
-        const actionablesContainer = document.createElement("div");
+        const actionablesContainer = document.createElement("ul");
         actionablesContainer.className = "singleSessionActionablesContainer";
         actionablesContainer.id = givenSession["pk"];
         actionablesContainer.classList.add("show");
@@ -130,6 +130,7 @@ function loadArchivedSessions() {
     }
 }
 
+//minmizes the list of actionables of a session
 function createMinimizingArrow(givenSessionKey) {
     const minimizingArrow = document.createElement("button");
     minimizingArrow.classList.add("minimizeActionablesButton");
