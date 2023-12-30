@@ -228,7 +228,6 @@ function enableDeleteButton(parentObject, enable) {
 
 
 //given an actionable name, return the color
-//this is temporary until we produce new favicons
 function getActionableColor_old(actionableName) {
     if (actionableName === "Working")
         return "blue";

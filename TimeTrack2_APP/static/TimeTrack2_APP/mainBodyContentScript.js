@@ -55,7 +55,7 @@ function startSession(){
     const tmp = document.querySelectorAll(".singleSessionDiv")[0].querySelector(".singleSessionActionablesContainer")
     tmp.id = currentSessionHolder().startFrom;
     document.querySelectorAll(".singleSessionDiv")[0].insertBefore(createMinimizingArrow(currentSessionHolder().startFrom), tmp);
-
+   
     //disabled the actionable buttons - until the session is finished saving
     enableActionableButtons(false);
     //save the new session and return a fetch
@@ -210,7 +210,7 @@ function startActionable() {
         currentActionableOutput.textContent = totalSecondsToTime(Math.floor(delta / 1000));
         totalSessionTimeOutput(totalSecondsToTime(Math.floor((Date.now() - currentSessionHolder().startFrom) / 1000)));
         //change the tab title
-        document.title = currentActionableHolder().actionableName + " : " + currentActionableOutput.textContent;
+        document.title = currentActionableOutput.textContent;
     }, 1000));
 }
 
@@ -251,11 +251,7 @@ function displayCurrentActionable() {
     const parentObject = document.getElementById("currentActionableDiv");
     if (parentObject.querySelector(".singleActionableDiv")) 
         parentObject.querySelector(".singleActionableDiv").remove()
-
-    //display the bar ruler if it is not already displayed
-    if (!parentObject.parentElement.querySelector(".barClass").firstChild)
-        displayBarRuler(parentObject, timestampToHHMM(currentSessionHolder().startFrom));
-
+        
     //modify the favicon    
     const faviconLink = document.querySelector("link[rel~='icon']");
     faviconLink.href = faviconLink.href.replace(/\/[^/]+\.ico$/, `/${getActionableColor_old(currentActionableHolder().actionableName)}.ico`)
@@ -275,6 +271,10 @@ function displayCurrentActionable() {
     currentActionableOutput.textContent = totalSecondsToTime(0);
     currentActionableOutput.style.marginLeft = "150px";
     singleActionableDiv.appendChild(currentActionableOutput);
+
+    //display the bar ruler if it is not already displayed
+    if (!singleActionableDiv.closest('.singleSessionDiv').getElementsByClassName('ruler')[0])
+        displayBarRuler(singleActionableDiv.closest('.singleSessionDiv'), timestampToHHMM(currentSessionHolder().startFrom));
 }
 
 //display the color square, the actionable name, the section, and the details

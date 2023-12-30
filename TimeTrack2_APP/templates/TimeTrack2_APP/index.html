@@ -13,22 +13,23 @@
 <div id="barOverlay"></div>
 
 <!-- actionables  -->
-<section>
+<section id="actionablesButtonsContainer">
     <!--actionable buttons-->
     <div id="actionableButtonsDiv">
         {% for i in actionablesChoices %}
         <button class="actionableButton btn" id="actionable_{{i.name}}" style="color:{{i.color}}; border-color:{{i.color}}">{{i.name}}</button>
         {% endfor %}
+        <!-- current session's total time and end button -->
     </div>
-    <!-- current session's total time and end button -->
     <div id="currentSessionDiv">
         <a id="totalSessionTimeOutput"></a>
-        <button style="float:right" id="buttonEndSession" class="sessionFadedButton btn btn-outline-dark"> End Session</button>
+        <button id="buttonEndSession" class="sessionFadedButton btn btn-outline-dark"> End Session</button>
     </div>
+
 </section>
 
 <!-- current session -->
-<article style="display:none" class="singleSessionDiv rounded shadow-sm">
+<article style="display:none" class="singleSessionDiv rounded">
     <div id="currentActionableDiv"></div>
     <div style="position:relative"><svg class="barClass"></svg></div>
     <ul class="singleSessionActionablesContainer show"></ul>
@@ -54,7 +55,7 @@
             {% csrf_token %}
             {{sectionForm.as_p}}
             <input type="hidden" style="display:none" id="addSectionFormParent" name="addSectionFormParent" value="unAcceptableValue" />
-            <button class="btn btn-light" type="submit">Add</button>
+            <button type="submit">Add</button>
         </form>
     </div>
     <button style="display:none" id="totalButtonReset">Reset</button>

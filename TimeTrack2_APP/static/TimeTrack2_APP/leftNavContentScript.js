@@ -169,7 +169,7 @@ function saveSection(event) {
         document.getElementById("addSectionForm").style.display = "none";
     })
     .catch(error => {
-        addFadingMessage(error.message); // Display the error message
+        addFadingMessage(error.message); //display the error message
     });
 }
 

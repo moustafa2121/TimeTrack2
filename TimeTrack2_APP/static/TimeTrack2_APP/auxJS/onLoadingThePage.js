@@ -95,7 +95,6 @@ function loadArchivedSessions() {
         const singleSessionDiv = document.createElement("article");
         singleSessionDiv.classList.add("singleSessionDiv");
         singleSessionDiv.classList.add("rounded");
-        singleSessionDiv.classList.add("shadow-sm");
         archivedSessionsDiv.appendChild(singleSessionDiv);
 
         //set the title of the session
@@ -177,7 +176,11 @@ function displayBarRuler(singleSessionDiv, sessionStartFrom,
                         max = constantValues().maxBarHours, steps = 7) {
     const rulerContainer = document.createElement('div');
     rulerContainer.classList.add("ruler");
-    singleSessionDiv.insertBefore(rulerContainer, singleSessionDiv.querySelector(".singleSessionActionablesContainer"));
+    setTimeout(() => {
+        singleSessionDiv.insertBefore(rulerContainer,
+            singleSessionDiv.querySelector(".barClass").parentElement.nextSibling);
+    }, 250);
+
     if (constantValues().displaySessionDuration) {
         min = sessionStartFrom;
         max = -1;
