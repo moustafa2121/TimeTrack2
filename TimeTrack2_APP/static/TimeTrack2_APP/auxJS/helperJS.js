@@ -375,6 +375,12 @@ function toggleRotateArrow(svg) {
         svg.style.transform = 'rotate(45deg)';
 }
 
+//close the modal on submission
+(() => {
+    const closeBtn = document.querySelector("#statsModalRequest .btn-close")
+    document.getElementById('statsForm').addEventListener('submit', e => closeBtn.click());
+})();
+
 
 //takes the minimizingArrow element
 //if it is up arrow it will switch to down arrow and vice verca
@@ -384,18 +390,22 @@ function toggleRotateArrow(svg) {
 //this is because of the position is absolute the collapse animation
 //is wrong. switches back when clicked again
 function toggleMinimizingArrowIcon(element) {
+    //disable to prevent user spaming it
+    element.disabled = true;
+    setTimeout(() => element.disabled = false, 1000);
+
     // Check if the element contains an SVG with the class 'bi-arrow-bar-up'
     const upArrowSVG = element.querySelector(".bi-arrow-bar-up");
     if (upArrowSVG) {
         // If an up arrow SVG is found, replace it with a down arrow SVG
         element.replaceChild(minimizingArrowIcon(false), upArrowSVG);
-        Array.from(element.parentNode.querySelectorAll(".singleSessionActionablesContainer .singleActionableDiv .timeActionableDetail")).map(x => x.style.position="static");
+        Array.from(element.parentNode.querySelectorAll(".singleSessionActionablesContainer .singleActionableDiv .timeActionableDetail")).map(x => x.style.position = "static");
     }
     else {
         // If no up arrow SVG is found, assume there's a down arrow SVG and replace it with an up arrow SVG
         const downArrowSVG = element.querySelector(".bi-arrow-bar-down");
         element.replaceChild(minimizingArrowIcon(true), downArrowSVG);
-        Array.from(element.parentNode.querySelectorAll(".singleSessionActionablesContainer .singleActionableDiv .timeActionableDetail")).map(x => x.style.position = "absolute");
+        Array.from(element.parentNode.querySelectorAll(".singleSessionActionablesContainer .singleActionableDiv .timeActionableDetail")).map(x => x.style.position = "");
     }
 }
 

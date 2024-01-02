@@ -3,7 +3,7 @@
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <Name>TimeTrack2</Name>
     <RootNamespace>TimeTrack2</RootNamespace>
-    <InterpreterId>MSBuild|TimeTrack2_env1|$(MSBuildProjectFullPath)</InterpreterId>
+    <InterpreterId>MSBuild|TimeTrack2_env2|$(MSBuildProjectFullPath)</InterpreterId>
   </PropertyGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -68,10 +68,8 @@
     <Content Include="TimeTrack2_APP\static\TimeTrack2_APP\auxJS\testFiles.js" />
     <Content Include="TimeTrack2_APP\static\TimeTrack2_APP\auxJS\validatorsFunctions.js" />
     <Content Include="TimeTrack2_APP\templates\base.html" />
+    <Content Include="TimeTrack2_APP\templates\statsModal.html" />
     <Content Include="TimeTrack2_APP\templates\TimeTrack2_APP\index.html" />
-    <Content Include="TimeTrack2_APP\templates\TimeTrack2_APP\testHTML.html">
-      <SubType>Code</SubType>
-    </Content>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="TimeTrack2\" />
@@ -86,10 +84,10 @@
     <Folder Include="TimeTrack2_APP\templates\TimeTrack2_APP\" />
   </ItemGroup>
   <ItemGroup>
-    <Interpreter Include="TimeTrack2_env1\">
-      <Id>TimeTrack2_env1</Id>
+    <Interpreter Include="TimeTrack2_env2\">
+      <Id>TimeTrack2_env2</Id>
       <Version>0.0</Version>
-      <Description>TimeTrack2_env1 (Python 3.12 (64-bit))</Description>
+      <Description>TimeTrack2_env2 (Python 3.12 (64-bit))</Description>
       <InterpreterPath>Scripts\python.exe</InterpreterPath>
       <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
       <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>

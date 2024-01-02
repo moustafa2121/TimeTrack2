@@ -1,7 +1,6 @@
 <!-- templates/base.html -->
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <!-- bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -26,6 +25,8 @@
 </head>
 
 <body>
+    {% include 'statsModal.html' %}
+
     <!-- top navigation bar -->
     <header class="navbar navbar-expand navbar-dark bg-dark fixed-top">
         <nav class="container-fluid">
@@ -34,24 +35,15 @@
                     <a class="navbar-brand" href="#">Time Tracker</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Stats</a>
+                    <a class="nav-link" style="cursor:pointer" data-bs-toggle="modal" data-bs-target="#statsModalRequest">Stats</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">About</a>
+                    <a class="nav-link" style="cursor:help" title="Coming soon!" href="#">About</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Tasks</a>
+                    <a class="nav-link" style="cursor:help" title="Coming soon!" href="#">Tasks</a>
                 </li>
             </ul>
-            <!--<li class="nav-item">
-                <a class="nav-link" href="#">Routines</a>
-            </li>-->
-                    <!--<li class="nav-item">
-                <a class="nav-link" href="#">Sections Management</a>
-            </li>-->
-                    <!--<form role="search">
-                <input class="form-control" type="search" placeholder="Search" aria-label="Search">
-            </form>-->
         </nav>
     </header>
     <!-- the main body + sections -->
@@ -70,4 +62,3 @@
     </main>
 </body>
 </html>
-

@@ -5,8 +5,6 @@ from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
 
-#todo: do we need a user to link everything or can we link it to each person's gdrive
-
 #the session in which the user start at the start of the day and ends it by the end of the day
 #it encompasses all the activities (typically in a day)
 #the start and end of the day are specified by unix millis

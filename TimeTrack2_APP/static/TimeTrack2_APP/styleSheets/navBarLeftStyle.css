@@ -2,13 +2,14 @@
 #navBarLeft {
     background-color: #E7E9EB;
     margin: 0;
-    padding: 8vh 0 0 0;
+    padding: 8vh 0 0 0 !important;
     position: fixed;
     top: 0;
     width: 15vw;
     height: 100vh;
     overflow: scroll;
     z-index: 2;
+    box-sizing: content-box;
 }
 
 #navBarLeft p {

@@ -1,17 +1,20 @@
-from django.shortcuts import render, redirect
+from argparse import Action
+from re import I
+from tracemalloc import start
+from urllib.error import HTTPError
+from django.shortcuts import render
 import json
 from django.core import serializers
 from django.core.exceptions import ValidationError
-from django.http import HttpResponseNotFound, JsonResponse
-from django.contrib import messages
-
-from .views_aux import SectionForm
+from django.http import HttpResponseBadRequest, HttpResponseNotFound, JsonResponse, HttpResponse
+from .views_aux import SectionForm, epochToDate, epochToTime, millisecondsToString, dateToEpoch
 from .models import Section, Actionable, ActionableChoices, SessionTime, ActionableSerializer
+import csv
+from django.views.decorators.http import require_http_methods
 
-
-#todo: login decorator
 #the main page
-#mostly responsible for getting recent/current sessions for rendering
+#responsible for getting recent/current sessions for rendering
+@require_http_methods(["GET"])
 def homepage(request):
     if request.method == 'POST':
         return HttpResponseNotFound()
@@ -51,6 +54,7 @@ def homepage(request):
                                                              "allSessions":recentSessionTimeAndActionables,
                                                              "currentSessionDB":currentSessionTimeAndActionables})
 
+@require_http_methods(["POST"])
 def updateSession(request):
     if request.method == "POST":
         sessionJson = json.loads(request.body)
@@ -74,6 +78,7 @@ def updateSession(request):
         return HttpResponseNotFound()
 
 #called on by fetchAPI when adding a new section
+@require_http_methods(["POST"])
 def addSection(request):
     if request.method == "POST":
         sectionJson = json.loads(request.body).get("passedSection")
@@ -98,6 +103,7 @@ def addSection(request):
         return HttpResponseNotFound()
 
 #called on when an actionable's life-cycle ends and saved in the DB
+@require_http_methods(["POST"])
 def addActionable(request):
     if request.method == 'POST':
         try:
@@ -120,6 +126,7 @@ def addActionable(request):
         return HttpResponseNotFound()
 
 #called on whenever a field of the actionable is change (After being validated in the frontend)
+@require_http_methods(["POST"])
 def updateActionable(request):
     if request.method == 'POST':
         try:
@@ -144,7 +151,7 @@ def updateActionable(request):
     elif request.method == 'GET':
         return HttpResponseNotFound()
 
-
+@require_http_methods(["POST"])
 def deleteActionable(request):
     if request.method == 'POST':
         try:
@@ -158,5 +165,38 @@ def deleteActionable(request):
     elif request.method == 'GET':
         return HttpResponseNotFound()
 
-def testView(request):
-    return render(request, "TimeTrack2_APP/testHTML.html", {})
+@require_http_methods(["GET"])
+def statsView(request):
+    #get input
+    startFrom, endTo = 1, 9999999999999
+    if request.GET.get('dateFromInput'):
+        startFrom = dateToEpoch(request.GET.get('dateFromInput'))
+    if request.GET.get('dateToInput'):
+        endTo = dateToEpoch(request.GET.get('dateToInput'))
+    
+    print('startFrom ', startFrom)
+    print('endTo', endTo)
+    
+    #todo startFrom < endTo
+    if startFrom >= endTo:
+        return HttpResponseBadRequest("error: startFrom has to be < endTo")
+    
+    actionables = Actionable.objects.all().order_by('-startFrom').filter(startFrom__range=[startFrom,endTo])[:10000].values_list('pk', 'name', 'currentSection', 'currentSession', 'detail', 'startFrom', 'endTo')
+    if len(actionables) == 0:
+        return HttpResponseBadRequest("error: no results found")
+    
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="stats.csv"'
+    writer = csv.writer(response)
+    writer.writerow(['pk', 'name', 'currentSection', 'currentSession', 'detail', 'startFrom', 'endTo','total', 'totalInseconds'])
+    for actionable in actionables:
+        actionable = list(actionable) + [actionable[-1]-actionable[-2], actionable[-1]-actionable[-2]];
+        actionable[-3] = epochToTime(actionable[-3])
+        actionable[-4] = epochToTime(actionable[-4])
+        actionable[-2] = millisecondsToString(actionable[-2]);
+        actionable[3] = epochToDate(actionable[3]);
+        actionable[1] = str(ActionableChoices.objects.get(pk=actionable[1]))
+        actionable[2] = str(Section.objects.get(pk=actionable[2]))
+        writer.writerow(actionable)
+    return response
+

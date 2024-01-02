@@ -25,7 +25,6 @@
         <a id="totalSessionTimeOutput"></a>
         <button id="buttonEndSession" class="sessionFadedButton btn btn-outline-dark"> End Session</button>
     </div>
-
 </section>
 
 <!-- current session -->
@@ -47,7 +46,7 @@
 {{sections|json_script:"sectionsJson"}}
 
 <!-- list of sections -->
-<article id="sections">
+<article tabindex="-1" id="sections">
     <p class="fs-5 fw-semibold " id="sectionsTitle">Sections</p>
     <div id="addSectionForm">
         <p style="height:10px;margin:0px" id="addSectionFormTitle">formTitle</p>
@@ -59,10 +58,6 @@
         </form>
     </div>
     <button style="display:none" id="totalButtonReset">Reset</button>
-</article>
-<hr />
-<article id="tasksDiv">
-    <p class="fs-5 fw-semibold">Tasks</p>
 </article>
 {% endblock leftNavContent%}
 

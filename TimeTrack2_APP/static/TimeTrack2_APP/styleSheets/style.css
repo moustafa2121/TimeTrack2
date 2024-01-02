@@ -14,7 +14,9 @@ body{
     margin: 0;
     padding: 0;
 }
-
+.navbar li:nth-child(1){
+    padding-top:4px;
+}
 main {
     display: grid;
     /*the left section side, empty element, and the main body*/
@@ -167,23 +169,25 @@ main {
 }
 
 
-.minimizeActionablesButton{
+.minimizeActionablesButton {
     width: 100%;
-    height:14px;
-    margin-top:10px;
-    padding:0;
+    height: 14px;
+    margin-top: 10px;
+    padding: 0;
+    border: none;
+    background-color: #e6e6e6;
 }
 .minimizeActionablesButton svg{
     padding:0;
     margin:0;
     vertical-align:top;
 }
-
 .singleSessionActionablesContainer {
     padding: 0;
     margin-top: 10px;
     max-height: 50vh;
     overflow-y: scroll;
+    overflow-x: visible;
 }
 .singleSessionActionablesContainer li:nth-child(odd) {
     background-color: #f0f0f0; 
@@ -208,29 +212,25 @@ main {
     font-family: Helvetica, Arial, Georgia, Tahoma and Roboto !important;
 }
 .singleActionableDiv.zoomEffect{ 
-    transform: scale(1.02);
+    /*transform: scale(1.02);*/
+    background-color:gray !important;
 }
+
+
 .singleActionableDiv .singleActionableColor {
     width: 8px;
     display: inline-block;
-}
-.singleActionableDiv .singleActionableName,
-.singleActionableDiv .singleActionableSelect {
+} .singleActionableDiv .singleActionableName, .singleActionableDiv .singleActionableSelect {
     padding-left: 0px;
-    margin: 0 5px 0 3px;
+    margin: 2px 0px 0 5px;
 }
 /* handle text overflow of several singleActionableDiv elements */
-.singleActionableDiv .singleActionableName, 
-.singleActionableDiv .singleActionableSection, 
-.singleActionableDiv .singleActionableSelect, 
-.singleActionableDiv .singleSectionSelect{
+.singleActionableDiv .singleActionableName, .singleActionableDiv .singleActionableSection, .singleActionableDiv .singleActionableSelect, .singleActionableDiv .singleSectionSelect{
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
     box-sizing:border-box !important;
-}
-
-.singleActionableDiv select{
+} .singleActionableDiv select{
     background-color: transparent;
     border: none;
     padding: 0;
@@ -239,71 +239,57 @@ main {
     font-size: inherit;
     cursor: pointer;
     line-height: inherit;
-}
-.singleActionableDiv select option {
+} .singleActionableDiv select option {
     padding: 8px;
     background-color: whitesmoke;
     color: #333;
     font:inherit;
     border-radius: 25px;
-}
-.singleActionableDiv select:focus {
+} .singleActionableDiv select:focus {
     outline: none; /* Remove the default focus outline */
     border-color: #007bff; /* Change border color on focus */
     box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25); /* Add a focus border */
-}
-
-.singleActionableDiv input{
+} .singleActionableDiv input{
     height:80%;
     border:none;
     background-color:inherit;
     border-bottom: 1px solid;
     border-color:whitesmoke;
-}
-.singleActionableDiv input:hover{
+} .singleActionableDiv input:hover{
     border-bottom: 1px solid black;
-}
-.singleActionableDiv .singleActionableDetails {
+} .singleActionableDiv .singleActionableDetails {
     padding-top:5px;
-}
-.singleActionableDiv .timeActionableDetail {
+} .singleActionableDiv .timeActionableDetail {
     text-align: center;
     position:relative;
     right: 1px;
-}
-.singleActionableDiv .timeActionableDetail span,
-.singleActionableDiv .timeActionableDetail input {
+} .singleActionableDiv .timeActionableDetail span, .singleActionableDiv .timeActionableDetail input {
     font-size: 1em;
     font-family: "Roboto" !important;
     text-align: center;
     margin: 0 5px 0 5px;
     width:18%;
-}
-.singleActionableDiv .actionableDeleteButton {
+} .singleActionableDiv .actionableDeleteButton {
     border:none;
     height:24px;
     padding: 0 10px 0 10px;
 }
-
 /* messages fading out*/
 #messagesContainer {
     display: flex;
     flex-direction: column; /* Arrange items vertically */
     justify-content: center;
     align-items: center;
-}
-#messagesContainer p {
+} #messagesContainer p {
     position:absolute;
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 4px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     background-color: slategray;
-}
-.fade-out {
+} .fade-out {
     animation: fadeOut 2s forwards; /* Use a CSS animation to fade out the element over 2 seconds */
-}
-@keyframes fadeOut {
+} @keyframes fadeOut {
     to {
         opacity: 0; /* At the end of the animation, the opacity will be set to 0 */
     }

@@ -1,0 +1,22 @@
+<!-- modal for stats request -->
+<section class="modal fade" id="statsModalRequest" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title fs-5" id="modalLabel">Request csv stats file</h2>
+                <div id="filterMessage" class="alert alert-primary align-items-center" role="alert" style="display:none !important">
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form class="modal-body" method="get" id="statsForm" action="/statscsv">
+                <label for="dateFromInput" class="form-label">Start Date</label>
+                <input type="date" class="form-control" id="dateFromInput" name="dateFromInput">
+                <label for="dateToInput" class="form-label">To Date</label>
+                <input type="date" class="form-control" id="dateToInput" name="dateToInput">
+                <div class="modal-footer" style="grid-column: 1/3">
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
