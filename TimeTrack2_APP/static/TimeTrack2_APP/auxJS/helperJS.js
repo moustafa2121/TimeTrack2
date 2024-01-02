@@ -22,39 +22,18 @@ const constantValues = (function () {
     }
 })();
 
-/* messages */
-const messagesContainer = document.getElementById("messagesContainer");
-let messageContainerCounter = 0;
-//todo:fading messages effect is sucky when it comes to stacking
-//todo: different messages (e.g. success adding anhg d error when adding section)
-//appear differently
-//add a message and then hideout after 2 seconds
-//it also removes the element after 1 second of the itnerval
-function addFadingMessage(message, interval = 4000) {
-    let tmp = document.createElement("p");
-    tmp.textContent = message;
-    messagesContainer.appendChild(tmp);
-    tmp.style.top = tmp.getBoundingClientRect().top + (45 * messageContainerCounter) + "px";
-    messageContainerCounter += 1;
 
-    setTimeout(function () {
-        tmp.classList.add("fade-out");
-        setTimeout(function () {
-            tmp.remove();
-            messageContainerCounter -= 1;
-        }, 3000);
-    }, interval);
-
-    //X button to close.
-    let closeButton = document.createElement("button");
-    closeButton.textContent = "X";
-    tmp.appendChild(closeButton);
-
-    closeButton.addEventListener("click", function (event) {
-        tmp.remove();
-        messageContainerCounter -= 1;
-    });
-}
+//add a message and then hideout after x seconds
+//it also removes the element after y second of the itnerval
+const addFadingMessage = (() => {
+    const toastLiveExample = document.getElementById('liveToast')
+    const toastBody = toastLiveExample.getElementsByClassName('toast-body')[0]
+    return (message, interval = 4000) => {
+        const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastLiveExample)
+        toastBootstrap.show()
+        toastBody.textContent = message;
+    }
+})();
 
 /* time format functions */
 
@@ -399,13 +378,13 @@ function toggleMinimizingArrowIcon(element) {
     if (upArrowSVG) {
         // If an up arrow SVG is found, replace it with a down arrow SVG
         element.replaceChild(minimizingArrowIcon(false), upArrowSVG);
-        Array.from(element.parentNode.querySelectorAll(".singleSessionActionablesContainer .singleActionableDiv .timeActionableDetail")).map(x => x.style.position = "static");
+        //Array.from(element.parentNode.querySelectorAll(".singleSessionActionablesContainer .singleActionableDiv .timeActionableDetail")).map(x => x.style.position = "static");
     }
     else {
         // If no up arrow SVG is found, assume there's a down arrow SVG and replace it with an up arrow SVG
         const downArrowSVG = element.querySelector(".bi-arrow-bar-down");
         element.replaceChild(minimizingArrowIcon(true), downArrowSVG);
-        Array.from(element.parentNode.querySelectorAll(".singleSessionActionablesContainer .singleActionableDiv .timeActionableDetail")).map(x => x.style.position = "");
+        //Array.from(element.parentNode.querySelectorAll(".singleSessionActionablesContainer .singleActionableDiv .timeActionableDetail")).map(x => x.style.position = "");
     }
 }
 

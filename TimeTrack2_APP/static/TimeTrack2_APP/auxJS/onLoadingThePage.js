@@ -100,7 +100,7 @@ function loadArchivedSessions() {
         //set the title of the session
         const titleDiv = document.createElement("div")
         titleDiv.style.borderBottom = "1px black solid"
-        titleDiv.style.paddingBottom = "0px"
+        titleDiv.style.paddingBottom = "5px"
         singleSessionDiv.appendChild(titleDiv);
         setSessionTitle(givenSession, titleDiv);
 
@@ -136,8 +136,8 @@ function createMinimizingArrow(givenSessionKey) {
     minimizingArrow.classList.add("btn");
     minimizingArrow.classList.add("btn-outline-dark");
     minimizingArrow.setAttribute("data-bs-toggle", "collapse");
-    minimizingArrow.setAttribute("data-bs-target", `#${givenSessionKey}`);
     minimizingArrow.appendChild(minimizingArrowIcon(true));
+    minimizingArrow.setAttribute("data-bs-target", `#${givenSessionKey}`);
     //event listener to hide the actionables
     minimizingArrow.addEventListener("click", () => {
         toggleMinimizingArrowIcon(minimizingArrow);

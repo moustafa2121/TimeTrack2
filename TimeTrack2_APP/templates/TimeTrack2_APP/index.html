@@ -8,7 +8,13 @@
 {{currentSessionDB|json_script:"currentSessionDB"}}
 
 <!-- responseMessage -->
-<div id="messagesContainer"></div>
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-body"></div>
+        <button style="display:inline-block" type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+</div>
+
 <!-- bar overaly, appears when hovering over display bar of the total time -->
 <div id="barOverlay"></div>
 
