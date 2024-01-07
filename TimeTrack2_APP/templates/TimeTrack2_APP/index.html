@@ -51,11 +51,12 @@
 <script src="{% static 'TimeTrack2_APP/leftNavContentScript.js' %}" defer></script>
 {{sections|json_script:"sectionsJson"}}
 
+
 <!-- list of sections -->
-<article tabindex="-1" id="sections">
+<article id="sections">
     <p class="fs-5 fw-semibold " id="sectionsTitle">Sections</p>
     <div id="addSectionForm">
-        <p style="height:10px;margin:0px" id="addSectionFormTitle">formTitle</p>
+        <p id="addSectionFormTitle">formTitle</p>
         <form method="post" action="/" onsubmit="return saveSection(event)">
             {% csrf_token %}
             {{sectionForm.as_p}}
@@ -65,7 +66,5 @@
     </div>
     <button style="display:none" id="totalButtonReset">Reset</button>
 </article>
+
 {% endblock leftNavContent%}
-
-
-

@@ -1,0 +1,126 @@
+@media only screen and (max-width: 1400px) {
+    main {
+        grid-template-columns: auto 98vw;
+    }
+    #navBarLeft {
+        z-index: 10000;
+        width: 25vw;
+    }
+    #leftBarToggltButton {
+        display: inline-block;
+    }
+}
+@media only screen and (max-height: 600px) {
+    .singleActionableDiv {/*
+        height: 12vh !important;
+        max-height: 12vh !important;*/
+    }
+}
+@media only screen and (max-width: 700px) {
+    #currentSessionDiv > a {
+        font-size: 1.0em;
+        margin: 8px 15px 0 0;
+    }
+    .actionableButton {
+        font-size: 3.0vmin;
+    }
+    #buttonEndSession {
+        font-size: 0.9em;
+    }
+    .singleActionableDiv {
+        grid-template-rows: repeat(2, 4vh);
+        grid-template-columns: 8px 25% 35% auto;
+        height: 9vh;
+        max-height: 9vh;
+        max-width: 90vw;
+    }
+    .timeActionableDetail {
+        grid-column: span 4;
+    }
+    .singleActionableDiv * {
+        height: 4.5vh !important;
+        max-height: 4.5vh !important;
+        font-size: 1.1em !important;
+    }
+    .actionableButton {
+        font-size: 1.0em;
+    }
+    #currentActionableOutput {
+        grid-column: span 4;
+        margin-top:7px;
+    }
+}
+@media only screen and (max-width: 600px) {
+    #navBarLeft {
+        width: 45vw;
+    }
+    #navBarLeft *{
+        font-size: 1.0em !important;
+    }
+    .singleActionableDiv .singleActionableDetails {
+        max-width: 65%;
+    }
+    .singleActionableDiv .timeActionableDetail {
+        max-width: 80%;
+    }
+    .singleActionableDiv .timeActionableDetail input {
+        width:25%;
+    }
+    .actionableButton {
+        height: 30px;
+        font-size: 1.0em;
+        padding: 0 7px 7px 7px;
+    }
+    .singleSessionDiv h5 {
+        font-size: 1.1em;
+    }
+}
+@media only screen and (max-width: 500px) {
+    .singleActionableDiv * {
+        font-size: 1.0em !important;
+    }
+    .actionableButton {
+        height: 25px;
+        font-size: 0.9em;
+        padding: 0 1px 1px 1px;
+    }
+    .singleSessionDiv h6 {
+        margin:0 !important;
+    }
+    .singleSessionDiv h5 {
+        font-size: 1.0em;
+    }
+    #currentActionableDiv .singleActionableDiv {
+        grid-template-rows: repeat(2, auto);
+        height: 10vh;
+        max-height: 10vh;
+    }
+
+    #currentActionableDiv #currentActionableOutput {
+        grid-column: span 1;
+        padding-bottom: 8px;
+        margin: 0;
+    }
+
+    #currentActionableDiv .singleActionableDetails {
+        grid-column: span 3;
+        width: 75%;
+        padding-bottom: 5px;
+    }
+
+    #currentActionableDiv .singleActionableSection {
+        grid-column: span 2;
+    }
+}
+@media only screen and (max-width: 450px) {
+    #navBarLeft {
+        width: 50vw;
+    }
+    .singleSessionDiv h6 {
+        display:none;
+    }
+    .actionableButton {
+        overflow: visible;
+        text-overflow: ellipsis;
+    }
+}

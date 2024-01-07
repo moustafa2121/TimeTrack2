@@ -6,11 +6,13 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://getbootstrap.com/docs/5.3/assets/css/docs.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <!-- scripts -->
     {% load static %}
     <link rel="stylesheet" href="{% static 'TimeTrack2_APP/styleSheets/style.css' %}">
+    <link rel="stylesheet" href="{% static 'TimeTrack2_APP/styleSheets/mainBodyRight.css' %}">
     <link rel="stylesheet" href="{% static 'TimeTrack2_APP/styleSheets/navBarLeftStyle.css' %}">
+    <link rel="stylesheet" href="{% static 'TimeTrack2_APP/styleSheets/mediaQueries.css' %}">
     <script src="{% static 'TimeTrack2_APP/auxJS/helperJS.js' %}" defer></script>
     <script src="{% static 'TimeTrack2_APP/auxJS/onLoadingThePage.js' %}" defer></script>
     <script src="{% static 'TimeTrack2_APP/auxJS/validatorsFunctions.js' %}" defer></script>
@@ -49,10 +51,18 @@
     <!-- the main body + sections -->
     <main>
         <!-- list of sections -->
-        <section id="navBarLeft">
+        <section id="navBarLeft" tabindex="-1" aria-labelledby="offcanvasExampleLabel">
             {% block leftNavContent %}
             {% endblock %}
         </section>
+        <button id="leftBarToggltButton" type="button"
+                data-bs-toggle="offcanvas"
+                data-bs-target="#navBarLeft">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-double-right" viewBox="7 0 30 16">
+                <path fill-rule="evenodd" d="M3.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L9.293 8 3.646 2.354a.5.5 0 0 1 0-.708z" />
+                <path fill-rule="evenodd" d="M7.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L13.293 8 7.646 2.354a.5.5 0 0 1 0-.708z" />
+            </svg>
+        </button>
         <section></section>
         <!-- the main body -->
         <section id="mainBodyRight">

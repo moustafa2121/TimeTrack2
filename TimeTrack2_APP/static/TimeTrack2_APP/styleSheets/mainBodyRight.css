@@ -1,0 +1,214 @@
+/* mainBodyRight section*/
+#mainBodyRight {
+    padding: 8vh 15px 15px 15px;
+}
+
+#mainBodyRight * {
+    z-index: 1;
+}
+
+/*contains the actionables and the current session time/end */
+#actionablesButtonsContainer {
+    width: 100%;
+    max-width: 100%;
+    display: flex;
+}
+/* contains only actionable buttons */
+#actionableButtonsDiv {
+    height: auto;
+    display: inline;
+}
+/* actionable buttons row */
+.actionableButton {
+    height: auto;
+    background-color: transparent;
+    border: solid 2px;
+    border-color: inherit;
+    transition: all .2s;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size:2.0vmin;
+}
+
+.actionableButtonSelected:hover {
+    filter: brightness(80%);
+}
+
+/* current session's total time and end button */
+#currentSessionDiv {
+    display: inline-flex;
+    margin-left: auto;
+}
+#currentSessionDiv > a {
+    margin: -2px 15px 0 0;
+    font-size: 1.7em;
+}
+#buttonEndSession {
+    white-space: nowrap;
+    height: auto;
+    max-height: 40px;
+    font-size: 1.1em;
+}
+.sessionFadedButton {
+    opacity: 0.5;
+    pointer-events: none; /* disable click events */
+}
+
+#currentActionableDiv {
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.2), 0px 2px 2px 0px rgba(0, 0, 0, 0.19);
+}
+/* session display */
+.singleSessionDiv {
+    margin-top: 15px;
+    width: 100%;
+    padding: 15px;
+    background-color: #f3f6f7;
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.2), 0px 2px 2px 0px rgba(0, 0, 0, 0.19);
+}
+
+.singleSessionDiv h6 {
+    font-family: "Segoe UI",Arial,sans-serif;
+    display: inline-block;
+    font-size: 1em;
+    display: inline;
+}
+
+.minimizeActionablesButton {
+    width: 100%;
+    height: 14px;
+    margin-top: 10px;
+    padding: 0;
+    border: none;
+    background-color: #e6e6e6;
+}
+.minimizeActionablesButton svg {
+    padding: 0;
+    margin: 0;
+    vertical-align: top;
+}
+
+.singleSessionActionablesContainer {
+    padding: 0;
+    margin-top: 10px;
+    max-height: 50vh;
+    overflow-y: scroll;
+    overflow-x: visible;
+}
+.singleSessionActionablesContainer:empty {
+    margin: 0;
+}
+
+.singleSessionActionablesContainer li:nth-child(odd) {
+    background-color: #f0f0f0;
+}
+.singleSessionActionablesContainer li:nth-child(even) {
+    background-color: #e6e6e6;
+}
+
+.singleActionableDiv {
+    display: grid;
+    grid-template-columns: 8px 15% 18% auto 35%;
+    height: 4.5vh;
+    max-height: 4.5vh;
+    margin: 3px 0 0 0;
+}
+/* limit the height of all children */
+.singleActionableDiv * {
+    height: inherit;
+    max-height: inherit;
+    font-size: 1.1em !important;
+    font-family: Helvetica, Arial, Georgia, Tahoma and Roboto !important;
+}
+
+.singleActionableDiv.zoomEffect {
+    /*transform: scale(1.02);*/
+    background-color: gray !important;
+}
+
+.singleActionableDiv .singleActionableColor {
+    width: 8px;
+    display: inline-block;
+}
+#currentActionableOutput{
+    margin:auto;
+    font-weight:800;
+}
+.singleActionableDiv .singleActionableName,
+.singleActionableDiv .singleActionableSelect,
+.singleActionableDiv .singleActionableSection{
+    margin: 5px 0px 0 7px;
+    padding:0;
+}
+/* handle text overflow of several singleActionableDiv elements */
+.singleActionableDiv .singleActionableName, 
+.singleActionableDiv .singleActionableSection, 
+.singleActionableDiv .singleActionableSelect, 
+.singleActionableDiv .singleSectionSelect {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    box-sizing: border-box !important;
+}
+
+.singleActionableDiv select {
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font-family: inherit;
+    font-size: inherit;
+    cursor: pointer;
+    line-height: inherit;
+}
+
+.singleActionableDiv select option {
+    padding: 8px;
+    background-color: whitesmoke;
+    color: #333;
+    font: inherit;
+    border-radius: 25px;
+}
+
+.singleActionableDiv select:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.singleActionableDiv input {
+    height: 80%;
+    border: none;
+    background-color: inherit;
+    border-bottom: 1px solid;
+    border-color: whitesmoke;
+}
+
+.singleActionableDiv input:hover {
+    border-bottom: 1px solid black;
+}
+
+.singleActionableDiv .singleActionableDetails {
+    padding-top: 5px;
+}
+
+.singleActionableDiv .timeActionableDetail {
+    text-align: center;
+    position: relative;
+    right: 1px;
+}
+
+.singleActionableDiv .timeActionableDetail span,
+.singleActionableDiv .timeActionableDetail input {
+    font-size: 0.9em !important;
+    font-family: "Roboto" !important;
+    text-align: center;
+    margin: 0 5px 0 5px;
+    width: 18%;
+}
+
+.singleActionableDiv .actionableDeleteButton {
+    border: none;
+    height: 24px;
+    padding: 0 10px 0 10px;
+}

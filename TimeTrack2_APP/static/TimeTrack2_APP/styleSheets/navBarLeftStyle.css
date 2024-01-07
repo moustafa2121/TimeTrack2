@@ -1,4 +1,17 @@
 /* navBarLeft section*/
+#leftBarToggltButton {
+    display: none;
+    position: fixed;
+    height: 100vh;
+    max-width: 1vh;
+    border-radius: 0px;
+    background: gray;
+    border:none;
+}
+#leftBarToggltButton svg{
+    scale: 1.1;
+}
+
 #navBarLeft {
     background-color: #E7E9EB;
     margin: 0;
@@ -24,7 +37,6 @@
     white-space: nowrap;
     text-overflow: ellipsis;
     flex-grow: 1;
-    font-size: 13px;
     text-decoration: underline;
 }
 
@@ -39,8 +51,9 @@
     text-align: left;
     border: none;
     background: none;
-    margin-right: 12px;
     cursor: pointer;
+    font-size: 1.3em;
+    margin-right: 8%;
 }
 
 #navBarLeft #addSectionForm {
@@ -50,14 +63,16 @@
     left: 0;
     top: 0;
     background-color: #E7E9EB;
-    width: 17vw;
-    height: 17vh;
+    width: auto;
+    height: auto;
     font-size: 2.5vmin;
     z-index: 10 !important;
 }
-
-#addSectionForm > form > p{
-    margin:5% 5px 0 5px;
+#addSectionForm > p {
+    margin:auto;
+}
+#addSectionForm > form > p {
+    margin: 5% 5px 0 5px;
 }
 #navBarLeft #addSectionForm input[type="text"] {
     width: 60%;

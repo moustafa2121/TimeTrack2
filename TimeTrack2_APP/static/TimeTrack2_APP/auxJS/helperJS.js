@@ -498,3 +498,23 @@ function timestampToHHMM(epochMilliseconds) {
     const minutes = date.getMinutes().toString().padStart(2, '0');
     return `${hours}:${minutes}`;
 }
+
+//media queries functions
+(() => {
+    const navBarLeft = document.getElementById("navBarLeft");
+    let whaleWidth = true;
+    const navBarLeftEvent = () => {
+        if (window.innerWidth < 1400 && whaleWidth) {
+            navBarLeft.classList.add("offcanvas");
+            navBarLeft.classList.add("offcanvas-start");
+            whaleWidth = false;
+        }
+        else if (window.innerWidth >= 1400 && !whaleWidth) {
+            navBarLeft.classList.remove("offcanvas");
+            navBarLeft.classList.remove("offcanvas-start");
+            whaleWidth = true;
+        }
+    }
+    window.addEventListener("load", navBarLeftEvent);
+    window.addEventListener("resize", navBarLeftEvent);
+})();

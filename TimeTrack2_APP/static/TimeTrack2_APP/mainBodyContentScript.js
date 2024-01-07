@@ -252,7 +252,6 @@ function displayCurrentActionable() {
     currentActionableOutput = document.createElement("span");
     currentActionableOutput.id = "currentActionableOutput";
     currentActionableOutput.textContent = totalSecondsToTime(0);
-    currentActionableOutput.style.marginLeft = "150px";
     singleActionableDiv.appendChild(currentActionableOutput);
 
     //display the bar ruler if it is not already displayed
@@ -524,7 +523,8 @@ function displayBar(barRef, passedActionable) {
 }
 
 //handles the display of the subBar's graphics
-function displayBar_aux(parentBar, passedActionable, numberOfHoursToShow=constantValues().totalBarHours) {
+function displayBar_aux(parentBar, passedActionable,
+                        numberOfHoursToShow=constantValues().totalBarHours) {
     const currentSecondsAsPercentage = Math.ceil((passedActionable.endTo - passedActionable.startFrom) / 1000) * 100;
     const width = currentSecondsAsPercentage / (numberOfHoursToShow * 3600);
 
@@ -554,7 +554,8 @@ function displayBar_aux(parentBar, passedActionable, numberOfHoursToShow=constan
 //when a subbar is deleted or changed in length (in case endTo/startFrom changes)
 //this functions redraws it and all its succeeding siblings
 //the subBar must already exist
-function displayBar_update(updatedActionableEle, divider=constantValues().displayBarMaxValue) {
+function displayBar_update(updatedActionableEle,
+                            divider = constantValues().totalBarHours) {
     //the changes in the passed actionable
     const startFrom = parseInt(updatedActionableEle.querySelectorAll(".timeActionableDetail input[data-raw-value]")[0].getAttribute("data-raw-value"));
     const endTo = parseInt(updatedActionableEle.querySelectorAll(".timeActionableDetail input")[1].getAttribute("data-raw-value"));
@@ -570,7 +571,7 @@ function displayBar_update(updatedActionableEle, divider=constantValues().displa
     //set the new color
     currentSubbar.setAttribute("style", `fill:${updatedActionableEle.querySelector(".singleActionableColor").style.backgroundColor}`);
 
-    ////change the next siblings's starting point
+    //change the next siblings's starting point
     while (currentSubbar.nextSibling) {
         const previousSibling = currentSubbar;
         currentSubbar = currentSubbar.nextSibling;
