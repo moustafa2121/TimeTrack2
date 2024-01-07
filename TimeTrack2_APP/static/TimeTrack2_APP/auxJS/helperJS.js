@@ -22,6 +22,29 @@ const constantValues = (function () {
     }
 })();
 
+//used for all fetch purposes
+//it fetches from the DB for all CRUD operations.
+//takes functions to execute if failed/successeful response
+function fetchWrapper(fetchUrl, body, method,
+                    handleResponseFunc, handleErrorFunc) {
+    return fetch(fetchUrl, {
+            method: method,
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": document.querySelector('input[name="csrfmiddlewaretoken"]').value
+            },
+            body: body
+        })
+        .then(response => response.json())
+        .then(data => {
+            addFadingMessage(data.message);
+            handleResponseFunc(data);
+        })
+        .catch(error => {
+            addFadingMessage(error);
+            handleErrorFunc(error);
+        });
+}
 
 //add a message and then hideout after x seconds
 //it also removes the element after y second of the itnerval

@@ -36,7 +36,7 @@ function loadLeftNavPanel() {
     addSectionButton_layer1.style.textDecorationThickness = "3px";
     addSectionButton_layer1.title = "Add a subsection"
     parent.appendChild(addSectionButton_layer1);
-    addSectionButtonFunction(addSectionButton_layer1, sectionsDiv().querySelector("h3"))
+    addSectionButtonFunction(addSectionButton_layer1, sectionsDiv().querySelector("#sectionsTitle"))
 
     //get the sections data from JSON from the HTML
     const data = JSON.parse(document.getElementById('sectionsJson').textContent);
@@ -151,26 +151,16 @@ function saveSection(event) {
     const name = form.elements["name"].value;
     const dict = { "name": name, "addSectionFormParentValue": addSectionFormParentValue }
 
-    fetch("/add-section/", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": document.querySelector('input[name="csrfmiddlewaretoken"]').value
+    fetchWrapper(fetchUrl = "/add-section/",
+        body = JSON.stringify({ "passedSection": dict }),
+        method = "POST",
+        handleResponseFunc = data => {
+            displaySection(JSON.parse(data.sectionToSend)[0]);
+            form.elements["name"].value = "";//reset the form
+            document.getElementById("addSectionForm").style.display = "none";
         },
-        body: JSON.stringify({ "passedSection": dict })
-    })
-    .then(response => response.json())
-    .then(data => {
-        displaySection(JSON.parse(data.sectionToSend)[0]);
-        addFadingMessage(data.message);
-
-        //reset the form
-        form.elements["name"].value = "";
-        document.getElementById("addSectionForm").style.display = "none";
-    })
-    .catch(error => {
-        addFadingMessage(error.message); //display the error message
-    });
+        handleErrorFunc = error => {/* do nothing */ },
+    );
 }
 
 //hides the addSectionForm if clicked outside of it
@@ -184,7 +174,7 @@ const firstClickedAddSectionForm = (function () {
 })();
 
 //subsection adding button
-function addSectionButtonFunction(addSectionButton, content, sectionContainer=-1) {
+function addSectionButtonFunction(addSectionButton, content, sectionContainer = -1) {
     addSectionButton.addEventListener("click", function () {
         const addSectionForm = document.getElementById("addSectionForm")
         //set up the form's dispaly

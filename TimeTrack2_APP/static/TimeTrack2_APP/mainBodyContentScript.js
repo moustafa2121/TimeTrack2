@@ -42,26 +42,20 @@ function startSession(){
     //disabled the actionable buttons - until the session is finished saving
     enableActionableButtons(false);
     //save the new session and return a fetch
-    return fetch("/update-session/", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": document.querySelector('input[name="csrfmiddlewaretoken"]').value
-        },
-        body: JSON.stringify(currentSessionHolder())
-        })
-        .then(response => response.json())
-        .then(data => {
+
+    return fetchWrapper(fetchUrl = "/update-session/",
+        body = JSON.stringify(currentSessionHolder()),
+        method = "POST",
+        handleResponseFunc = data => {
             enableActionableButtons(true);
-            addFadingMessage(data.message);
             //after the session in the DB, activate the button ending session
             buttonEndingSession().on;
             document.querySelectorAll(".singleSessionDiv")[0].style.display = "block";
-        })
-        .catch(error => {
-            addFadingMessage(error);
+        },
+        handleErrorFunc = error => {
             enableActionableButtons(true);
-        });
+        }
+    );
 }
 
 //ending session button
@@ -97,30 +91,21 @@ function endSession() {
     else
         currentSessionHolder().endTo = currentSessionHolder().expiredSession;
 
-    fetch("/update-session/", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": document.querySelector('input[name="csrfmiddlewaretoken"]').value
+    fetchWrapper(fetchUrl = "/update-session/",
+        body = JSON.stringify(currentSessionHolder()),
+        method = "POST",
+        handleResponseFunc = data => {
+            //switch the fading effect of the start/end button
+            buttonEndingSession().off;
+            //reload the page so the previous session is placed within the archived sessions in the homepage
+            location.reload();
+            enableActionableButtons(true);
         },
-        body: JSON.stringify(currentSessionHolder())
-    })
-    .then(response => response.json())
-    .then(data => {
-        //switch the fading effect of the start/end button
-        buttonEndingSession().off;
-
-        //reload the page so the previous session is placed within the archived ones in the homepage
-        location.reload();
-        addFadingMessage(data.message);
-        enableActionableButtons(true);
-
-    })
-    .catch(error => {
-        location.reload();
-        addFadingMessage(error);
-        enableActionableButtons(true);
-    });                
+        handleErrorFunc = error => {
+            location.reload();
+            enableActionableButtons(true);
+        }
+    );           
 }
 
 
@@ -388,16 +373,10 @@ function displayActionable(passedActionable, parentObject, caseValue) {
         actionableDeleteButton.addEventListener("click", () => {
             if (confirm("Are you sure you want to delete this actionable?")) {
                 //delete the object from the DB
-                fetch("/delete-actionable/", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": document.querySelector('input[name="csrfmiddlewaretoken"]').value
-                    },
-                    body: JSON.stringify({ "pk": passedActionable.pk })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
+                fetchWrapper(fetchUrl = "/delete-actionable/",
+                    body = JSON.stringify({ "pk": passedActionable.pk }),
+                    method = "POST",
+                    handleResponseFunc = data => {
                         //if sucessfully deleted
                         addFadingMessage(data.message);
 
@@ -422,10 +401,9 @@ function displayActionable(passedActionable, parentObject, caseValue) {
 
                         //remove the display subbar
                         document.getElementById(`subBar_${passedActionable.pk}`).remove();
-                    })
-                    .catch(error => {
-                        addFadingMessage(error);
-                    });
+                    },
+                    handleErrorFunc = error => {/* do nothing */}
+                );                
             }
         });
     }
@@ -633,42 +611,24 @@ function updateActionable(target, constObjSend={}) {
             constObjSend[target.name] = target.value;
     }
     //send to the DB
-    fetch("/update-actionable/", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": document.querySelector('input[name="csrfmiddlewaretoken"]').value
-        },
-        body: JSON.stringify(constObjSend)
-    })
-        .then(response => response.json())
-        .then(data => {
-            addFadingMessage(data.message);
-        })
-        .catch(error => {
-            addFadingMessage(error);
-        });
+    fetchWrapper(fetchUrl = "/update-actionable/",
+        body = JSON.stringify(constObjSend),
+        method = "POST",
+        handleResponseFunc = data => {/* do nothing */ },
+        handleErrorFunc = error => {/* do nothing */ },
+    );    
 }
 
 //sends a new actionable to the DB using fetchAPI, when resolved
 //it will give the passedActionable id (from the DB)
 function addActionable(passedActionable) {
-    return fetch("/add-actionable/", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": document.querySelector('input[name="csrfmiddlewaretoken"]').value
-        },
-        body: JSON.stringify(passedActionable)
-    })
-    .then(response => response.json())
-    .then(data => {
-        addFadingMessage(data.message);
-        passedActionable.pk = data["pk"];//set the id
-    })
-    .catch(error => {
-        addFadingMessage(error);
-    });
+    return fetchWrapper(fetchUrl = "/add-actionable/",
+        body = JSON.stringify(passedActionable),
+        method = "POST",
+        handleResponseFunc = data => 
+            passedActionable.pk = data["pk"],//set the id
+        handleErrorFunc = error => {/* do nothing */ },
+    );    
 }
 
 //inititalize a select, used to set up a modifiable actionable name and its section in
