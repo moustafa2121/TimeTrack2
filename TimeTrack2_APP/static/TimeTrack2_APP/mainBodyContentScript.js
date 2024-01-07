@@ -102,7 +102,6 @@ function endSession() {
             enableActionableButtons(true);
         },
         handleErrorFunc = error => {
-            location.reload();
             enableActionableButtons(true);
         }
     );           

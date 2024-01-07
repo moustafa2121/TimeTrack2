@@ -41,8 +41,14 @@ function fetchWrapper(fetchUrl, body, method,
             handleResponseFunc(data);
         })
         .catch(error => {
-            addFadingMessage(error);
             handleErrorFunc(error);
+            addFadingMessage(error);
+            //this is to handle a recurring error of CSRF mismatching
+            //for some reason. reloading the page will bring the
+            //user to the state before the request was made and its error
+            //thus the user will have to do the request again and will
+            //(unlikely) get the error
+            location.reload();
         });
 }
 
