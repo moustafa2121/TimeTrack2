@@ -10,13 +10,32 @@
         display: inline-block;
     }
 }
+@media only screen and (min-width: 900px) and (min-height: 900px) {
+    .singleActionableDiv {
+        height: 3vh !important;
+        max-height: 3vh !important;
+    }    
+}
 @media only screen and (max-height: 600px) {
-    .singleActionableDiv {/*
-        height: 12vh !important;
-        max-height: 12vh !important;*/
+    .singleActionableDiv {
+        grid-template-rows: repeat(2, 6vh);
+        grid-template-columns: 8px 25% 35% auto;
+        height: 12vh;
+        max-height: 12vh;
+    }
+    #currentActionableOutput{
+        margin-top:0 !important;
     }
 }
-@media only screen and (max-width: 700px) {
+@media only screen and (max-height: 500px) {
+    .singleActionableDiv {
+        grid-template-rows: repeat(2, 8vh) !important;
+        grid-template-columns: 8px 25% 35% auto;
+        height: 16vh !important;
+        max-height: 16vh !important;
+    }
+}
+@media only screen and (max-width: 700px), (max-height: 600px)  {
     #currentSessionDiv > a {
         font-size: 1.0em;
         margin: 8px 15px 0 0;
@@ -61,7 +80,7 @@
         max-width: 65%;
     }
     .singleActionableDiv .timeActionableDetail {
-        max-width: 80%;
+        max-width: 100%;
     }
     .singleActionableDiv .timeActionableDetail input {
         width:25%;
@@ -113,6 +132,9 @@
     }
 }
 @media only screen and (max-width: 450px) {
+    .navbar li:nth-child(1) {
+        padding-top: 5%;
+    }
     #navBarLeft {
         width: 50vw;
     }

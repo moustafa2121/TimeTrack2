@@ -423,14 +423,12 @@ function displayBar(barRef, passedActionable) {
         //get the baroverlay, set its parent to be the subbar's parent
         const barOverlay = document.getElementById("barOverlay");
 
-        //only initialize at entering
         //populates the barOverlay
         if (!barOverlay.classList.contains("active")) {
             barOverlay.classList.add('active');
             rect.parentElement.parentElement.appendChild(barOverlay);
-
             //set the border of the subbar when being hovered over
-            rect.setAttribute("style", `fill: ${passedActionable.actionableColor}; stroke-width:1; stroke:rgb(0,0,0)`);
+            rect.setAttribute("style", `fill: ${rect.style.fill}; stroke-width:1; stroke:rgb(0,0,0)`);
 
             //zoom-in effect on the related .singleActionableDiv
             parentSingleSessionActionablesContainer.querySelector(`[id="${passedActionable.pk}"`).classList.add("zoomEffect");
@@ -462,12 +460,6 @@ function displayBar(barRef, passedActionable) {
                 totalTimeActionablesHolder[actionableName] = addTimeStrings(totalTimeActionablesHolder[actionableName], actionableTotalTime);
             }
 
-            //display title for the barOverlay
-            //const totalTextNode = document.createElement("div");
-            //totalTextNode.classList.add("title");
-            //totalTextNode.textContent = "Total/Actionable"
-            //barOverlay.appendChild(totalTextNode);
-
             //populate the barOverLay
             for (const [key, value] of Object.entries(totalTimeActionablesHolder)) {
                 const actionableValue = document.createElement("div");
@@ -493,7 +485,7 @@ function displayBar(barRef, passedActionable) {
 
     //remove the zoom effect
     rect.addEventListener("mouseleave", () => {
-        rect.setAttribute("style", `fill:${passedActionable.actionableColor}`);
+        rect.setAttribute("style", `fill:${rect.style.fill}`);
         barOverlay.classList.remove('active');
         parentSingleSessionActionablesContainer.querySelector(".zoomEffect").classList.remove("zoomEffect");;
     });
@@ -539,7 +531,6 @@ function displayBar_update(updatedActionableEle,
 
     //reference to the subbbar of the passed actionable
     let currentSubbar = document.querySelector(`[id='subBar_${updatedActionableEle.closest(".singleActionableDiv").id}']`);
-
     //calculate the new width
     const currentSecondsAsPercentage = Math.ceil((endTo - startFrom) / 1000) * 100;
     const width = currentSecondsAsPercentage / (divider * 3600);

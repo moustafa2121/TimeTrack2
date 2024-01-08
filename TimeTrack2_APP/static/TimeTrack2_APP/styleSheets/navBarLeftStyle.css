@@ -15,11 +15,11 @@
 #navBarLeft {
     background-color: #E7E9EB;
     margin: 0;
-    padding: 8vh 0 0 0 !important;
+    padding: 8vh 0 2vh 0 !important;
     position: fixed;
     top: 0;
     width: 15vw;
-    height: 100vh;
+    height: 92vh;
     overflow: scroll;
     z-index: 2;
     box-sizing: content-box;
@@ -40,7 +40,8 @@
     text-decoration: underline;
 }
 
-#navBarLeft .sectionContainerInd:hover, #navBarLeft .sectionContainerInd:has(.spanSelected) {
+#navBarLeft .sectionContainerInd:hover, 
+#navBarLeft .sectionContainerInd:has(.spanSelected) {
     background-color: lightgray;
     cursor: pointer;
 }

@@ -3,10 +3,6 @@
     padding: 8vh 15px 15px 15px;
 }
 
-#mainBodyRight * {
-    z-index: 1;
-}
-
 /*contains the actionables and the current session time/end */
 #actionablesButtonsContainer {
     width: 100%;
@@ -89,6 +85,7 @@
 }
 
 .singleSessionActionablesContainer {
+    position:relative;
     padding: 0;
     margin-top: 10px;
     max-height: 50vh;
@@ -132,19 +129,22 @@
 }
 #currentActionableOutput{
     margin:auto;
-    font-weight:800;
+    font-weight:700;
 }
 .singleActionableDiv .singleActionableName,
-.singleActionableDiv .singleActionableSelect,
 .singleActionableDiv .singleActionableSection{
-    margin: 5px 0px 0 7px;
-    padding:0;
+    margin: 2px 0px 0 4px;
+    padding: 0;
+}
+.singleActionableDiv .singleActionableSelect {
+    margin: 0 0 0 4px;
 }
 /* handle text overflow of several singleActionableDiv elements */
-.singleActionableDiv .singleActionableName, 
-.singleActionableDiv .singleActionableSection, 
-.singleActionableDiv .singleActionableSelect, 
-.singleActionableDiv .singleSectionSelect {
+.singleActionableDiv .singleActionableName,
+.singleActionableDiv .singleActionableSection,
+.singleActionableDiv .singleActionableSelect,
+.singleActionableDiv .singleSectionSelect,
+.singleActionableDiv .singleActionableDetails {
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
@@ -189,7 +189,7 @@
 }
 
 .singleActionableDiv .singleActionableDetails {
-    padding-top: 5px;
+    margin-top:5px;
 }
 
 .singleActionableDiv .timeActionableDetail {

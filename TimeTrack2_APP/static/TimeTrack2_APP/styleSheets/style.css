@@ -19,7 +19,7 @@ body{
     font-size: 2.7vmin !important;
 }
 .navbar li:nth-child(1){
-    padding-top:4%;
+    padding-top:2%;
 }
 
 /*the left section side, empty element, and the main body*/
@@ -51,7 +51,6 @@ main {
     margin-top: 15px;
     padding: 0;
 }
-
 /* time bar ruler */
 .ruler {
     width: 100%;
@@ -80,14 +79,13 @@ main {
     position: absolute;
     text-align: center;
     padding: 10px 10px 10px 7px;
-    width: 9vh;
     background-color: #f3f6f7;
-    z-index: 1;
+    z-index: 3 !important;
     display: none;
     pointer-events: none;
     border: 1px solid black;
     border-radius: 5px;
-    width: 8vw;
+    width: auto;
 }
 /* appears when hovering over a subbar*/
 #barOverlay.active {
