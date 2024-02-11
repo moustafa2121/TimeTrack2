@@ -4,7 +4,6 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
-
 #the session in which the user start at the start of the day and ends it by the end of the day
 #it encompasses all the activities (typically in a day)
 #the start and end of the day are specified by unix millis
