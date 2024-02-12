@@ -255,12 +255,6 @@ function displayCurrentActionable() {
 //4- called by the displayCurrentActionable to display the current actionable,
 //nothing is modifiable but for the details
 function displayActionable_firstPart(passedActionable, parentObject, caseValue) {
-    //color square
-    const actionableColor = document.createElement("div");
-    actionableColor.style.backgroundColor = passedActionable.actionableColor;
-    actionableColor.classList.add("singleActionableColor");
-    parentObject.appendChild(actionableColor);
-    
     //the actionable name and section can be changed
     if (caseValue == 2 || caseValue == 3) {//a selectable
         //populate the actionable name
@@ -285,6 +279,9 @@ function displayActionable_firstPart(passedActionable, parentObject, caseValue) 
         sectionName.classList.add("singleActionableSection");
         parentObject.appendChild(sectionName);
     }
+
+    //left border color
+    parentObject.style.borderLeft = "8px solid " + passedActionable.actionableColor;
 
     //details
     let details;
@@ -410,7 +407,6 @@ function displayActionable(passedActionable, parentObject, caseValue) {
 
 //displays the subBar of the actionable on the progress bar of the session
 //also sets up the hovering effect on the subBar
-//the divider is currently just for testing (its in hours)
 function displayBar(barRef, passedActionable) {
     //handles the graphics of the subBar
     const rect = displayBar_aux(barRef, passedActionable)
@@ -523,8 +519,8 @@ function displayBar_aux(parentBar, passedActionable,
 //when a subbar is deleted or changed in length (in case endTo/startFrom changes)
 //this functions redraws it and all its succeeding siblings
 //the subBar must already exist
-function displayBar_update(updatedActionableEle,
-                            divider = constantValues().totalBarHours) {
+function displayBar_update(updatedActionableEle, colorChange,
+    divider = constantValues().totalBarHours) {
     //the changes in the passed actionable
     const startFrom = parseInt(updatedActionableEle.querySelectorAll(".timeActionableDetail input[data-raw-value]")[0].getAttribute("data-raw-value"));
     const endTo = parseInt(updatedActionableEle.querySelectorAll(".timeActionableDetail input")[1].getAttribute("data-raw-value"));
@@ -537,8 +533,9 @@ function displayBar_update(updatedActionableEle,
     currentSubbar.setAttribute("width", `${width}%`);
 
     //set the new color
-    currentSubbar.setAttribute("style", `fill:${updatedActionableEle.querySelector(".singleActionableColor").style.backgroundColor}`);
-
+    if (colorChange !== undefined)
+        currentSubbar.setAttribute("style", `fill:${colorChange}`);
+    
     //change the next siblings's starting point
     while (currentSubbar.nextSibling) {
         const previousSibling = currentSubbar;
@@ -575,10 +572,10 @@ function preUpdateActionable(event) {
         return;
     }
 
-    //change the color of the square if the actionable name changed
+    //change the color of the left border if the actionable name changed
     if (currentTarget.name == "name") {
-        currentTarget.previousSibling.style.backgroundColor = getActionableColor(newValue);
-        displayBar_update(currentTarget.closest(".singleActionableDiv"));
+        currentTarget.parentNode.style.borderLeft = "8px solid " + getActionableColor(newValue);
+        displayBar_update(currentTarget.closest(".singleActionableDiv"), getActionableColor(newValue));
     }
 
     //second:go to the DB

@@ -17,16 +17,16 @@
 /* actionable buttons row */
 .actionableButton {
     height: auto;
+    font-size: 1.5vmax;
+    margin-bottom: 2px;
     background-color: transparent;
-    border: solid 2px;
+    border: solid 0.15vmax;
     border-color: inherit;
     transition: all .2s;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    font-size:2.0vmin;
 }
-
 .actionableButtonSelected:hover {
     filter: brightness(80%);
 }
@@ -104,29 +104,26 @@
 }
 
 .singleActionableDiv {
+    height: 35px !important;
+    max-height: 35px !important;
     display: grid;
-    grid-template-columns: 8px 15% 18% auto 35%;
-    height: 4.5vh;
-    max-height: 4.5vh;
-    margin: 3px 0 0 0;
+    grid-template-columns: 15% 18% auto 35%;
+    margin: 3px 0;
+    box-sizing: border-box !important;
 }
 /* limit the height of all children */
 .singleActionableDiv * {
-    height: inherit;
-    max-height: inherit;
+    margin:2px 0;
     font-size: 1.1em !important;
     font-family: Helvetica, Arial, Georgia, Tahoma and Roboto !important;
 }
 
 .singleActionableDiv.zoomEffect {
     /*transform: scale(1.02);*/
-    background-color: gray !important;
+    border-top: 2px solid black !important;
+    border-bottom: 2px solid black !important;
 }
 
-.singleActionableDiv .singleActionableColor {
-    width: 8px;
-    display: inline-block;
-}
 #currentActionableOutput{
     margin:auto;
     font-weight:700;
@@ -200,15 +197,15 @@
 
 .singleActionableDiv .timeActionableDetail span,
 .singleActionableDiv .timeActionableDetail input {
-    font-size: 0.9em !important;
+    /*font-size: 0.9em !important;*/
     font-family: "Roboto" !important;
     text-align: center;
-    margin: 0 5px 0 5px;
-    width: 18%;
+    margin: 0 5px 0 0;
+    max-width: 25%;
 }
 
 .singleActionableDiv .actionableDeleteButton {
     border: none;
     height: 24px;
-    padding: 0 10px 0 10px;
+    padding: 0 10px;
 }
