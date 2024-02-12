@@ -34,4 +34,4 @@ The purpose of it is to keep the user accountable, as the session cannot be paus
 
 
 ### Demo ⏵
-![demo](https://github.com/moustafa2121/MarketScanner/blob/master/demo.gif)
+![demo](https://github.com/moustafa2121/TimeTrack2/blob/master/demo.gif)
